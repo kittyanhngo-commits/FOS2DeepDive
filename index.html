@@ -1,0 +1,1102 @@
+<title>FOS 2 Krillion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one centered dive column; a depth strip on top darkens the water as points accrue. Single deliberate deep-sea look. */
+:root{
+  color-scheme: dark;
+  --water-0:#0f3b52;      /* surface */
+  --water-1:#071827;      /* abyss */
+  --ink:#e6f1f4;
+  --ink-dim:#93b1bd;
+  --line:#1f4a5e;
+  --panel:#0b2536cc;
+  --krill:#ff8c72;        /* accent: krill pink-orange */
+  --krill-glow:#ff8c7255;
+  --ok:#7fe0c3;
+  --bad:#ff6b7d;
+  --t-p:#9fb7a6; --t-c:#b4aed0; --t-s:#7cc4f0; --t-r:#4fe0c7; --t-d:#b48cff; --t-k:#ff8c72;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --depth:0;
+}
+html,body{min-height:100%}
+body{
+  background:
+    radial-gradient(120% 60% at 50% -10%, color-mix(in oklab, var(--water-0) calc(100% - var(--depth)*100%), var(--water-1)) 0%, transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--water-0) calc(70% - var(--depth)*70%), var(--water-1)) 0%, var(--water-1) 100%);
+  background-color:var(--water-1);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:16px;
+  line-height:1.5;
+  transition:background .8s ease;
+}
+body::after{ /* marine snow */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 20%, #cfe9f0 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 35%, #cfe9f0 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 40% 70%, #cfe9f0 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 80%, #cfe9f0 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 25% 90%, #cfe9f0 50%, transparent 51%);
+  background-size:320px 420px;
+  animation:snow 40s linear infinite;
+}
+@keyframes snow{to{background-position:0 420px}}
+@media (prefers-reduced-motion: reduce){body::after{animation:none} *{transition:none!important;animation:none!important}}
+
+.wrap{
+  position:relative;z-index:1;max-width:720px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+  padding-block:20px 48px;
+  display:flex;flex-direction:column;gap:20px;
+}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand .eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:900;font-size:clamp(40px,9vw,64px);line-height:.9;letter-spacing:.01em;text-transform:uppercase}
+.brand h1 em{font-style:normal;color:var(--krill);text-shadow:0 0 24px var(--krill-glow)}
+.gauge{text-align:right;font-family:var(--f-display);line-height:1}
+.gauge .m{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
+.gauge .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
+
+.strip{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.strip > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--t-s),var(--t-d),var(--krill));transition:width .8s ease}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;backdrop-filter:blur(6px)}
+h2{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.1;margin:0;text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+p{margin:0}
+.muted{color:var(--ink-dim)}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:12px 18px;font-weight:700}
+button:focus-visible,input:focus-visible{outline:2px solid var(--krill);outline-offset:2px}
+button.primary{background:var(--krill);border-color:var(--krill);color:#1a0d09}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost:hover{border-color:var(--ink-dim)}
+button[disabled]{opacity:.45;cursor:not-allowed}
+
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.tiers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tier{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--line)}
+.tier b{font-family:var(--f-display);font-size:18px;text-transform:uppercase;letter-spacing:.02em}
+.tier span{font-family:var(--f-mono);font-size:12px;color:var(--ink-dim)}
+.c-p{color:var(--t-p)} .c-c{color:var(--t-c)} .c-s{color:var(--t-s)} .c-r{color:var(--t-r)} .c-d{color:var(--t-d)} .c-k{color:var(--t-k)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 12px;border-radius:999px;font-weight:400;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--water-1);border-color:var(--ink)}
+
+/* round */
+.roundhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-dim)}
+.prompt{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,6vw,40px);line-height:1.05;text-transform:uppercase;text-wrap:balance;margin:6px 0 2px}
+.timer{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.timer > i{display:block;height:100%;background:var(--ok);width:100%;transform-origin:left}
+.timer.low > i{background:var(--bad)}
+.secs{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:14px;color:var(--ink-dim)}
+.answer{display:flex;gap:8px}
+.answer input{flex:1;min-width:0;font:inherit;font-size:18px;padding:14px 14px;border-radius:10px;border:1px solid var(--line);background:#04121ccc;color:var(--ink)}
+.feedback{min-height:24px;font-size:15px}
+.feedback.bad{color:var(--bad)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+
+.result{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.badge{font-family:var(--f-display);font-weight:900;font-size:26px;text-transform:uppercase;padding:6px 14px;border-radius:10px;border:2px solid currentColor}
+.badge.k{box-shadow:0 0 28px var(--krill-glow)}
+.pts{font-family:var(--f-mono);font-size:15px}
+.reveal{display:flex;flex-direction:column;gap:10px}
+.reveal .grp{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:baseline;padding-top:8px;border-top:1px solid var(--line)}
+@media (max-width:520px){.reveal .grp{grid-template-columns:1fr;gap:4px}}
+.reveal .grp h4{margin:0;font-family:var(--f-display);font-size:16px;text-transform:uppercase;letter-spacing:.03em}
+.reveal .grp h4 small{font-family:var(--f-mono);font-size:11px;color:var(--ink-dim);margin-left:6px}
+.reveal .names{font-size:14px;color:var(--ink-dim)}
+.reveal .names mark{background:var(--krill);color:#1a0d09;border-radius:4px;padding:0 4px;font-weight:700}
+
+/* summary */
+.big{font-family:var(--f-display);font-weight:900;font-size:clamp(56px,14vw,96px);line-height:.9;font-variant-numeric:tabular-nums}
+.band{font-family:var(--f-display);font-size:24px;text-transform:uppercase;color:var(--krill);letter-spacing:.03em}
+table.sum{width:100%;border-collapse:collapse;font-size:14px}
+table.sum td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+table.sum td.n{font-family:var(--f-mono);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sharebox{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap;background:#04121ccc;border:1px solid var(--line);border-radius:10px;padding:12px;user-select:all}
+footer{font-size:12px;color:var(--ink-dim);text-align:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Foundations of Science 2 · Rare-answer dive</span>
+      <h1>FOS 2 <em>Krillion</em></h1>
+    </div>
+    <div class="gauge" aria-live="polite">
+      <div class="m" id="gaugeM">0 m</div>
+      <div class="lbl" id="gaugeLbl">at the surface</div>
+    </div>
+  </header>
+  <div class="strip" aria-hidden="true"><i id="stripFill"></i></div>
+  <main id="app"></main>
+  <footer>Rarity tiers are editorial estimates of how often an M1 would reach for an answer, not live player counts. Spelling is forgiving; Greek letters can be typed as words.</footer>
+</div>
+
+<script>
+/* ---------- tiers ---------- */
+const TIERS = {
+  p:{name:"Plankton",pts:10,emoji:"🟢"},
+  c:{name:"Too Clever",pts:15,emoji:"🟣"},
+  s:{name:"Schooler",pts:30,emoji:"🔵"},
+  r:{name:"Rare",pts:60,emoji:"🐟"},
+  d:{name:"Deep Cut",pts:85,emoji:"🐙"},
+  k:{name:"One in a Krillion",pts:100,emoji:"🦐"}
+};
+const ORDER = ["k","d","r","s","c","p"];
+const SECONDS = 25, ROUNDS = 7, M_PER_PT = 10;
+
+/* ---------- question bank ---------- */
+const BANK = [
+{t:"Signaling & Pharm",q:"Name a second messenger",a:{
+ p:["cAMP|cyclic AMP"],c:["IP3|inositol trisphosphate","DAG|diacylglycerol"],
+ s:["Calcium|Ca2+|Ca|intracellular calcium","cGMP|cyclic GMP"],
+ r:["Nitric oxide","PIP3|phosphatidylinositol trisphosphate"],
+ d:["cADPR|cyclic ADP ribose","Ceramide"],k:"NAADP"}},
+
+{t:"Signaling & Pharm",q:"Name a receptor tyrosine kinase",a:{
+ p:["Insulin receptor|insulin"],c:["EGFR|EGF receptor|HER1|ErbB1"],
+ s:["HER2|ErbB2|neu","PDGFR|PDGF receptor","VEGFR|VEGF receptor","FGFR|FGF receptor","IGF-1R|IGF-1 receptor|IGF1 receptor"],
+ r:["c-Kit|Kit|CD117","Trk|TrkA|NGF receptor","c-Met|Met|HGF receptor"],
+ d:["RET","ALK|anaplastic lymphoma kinase","FLT3"],k:"Tie2|Tek"},
+ n:{"jak":"JAK is a non-receptor tyrosine kinase (cytokine receptors borrow it).","tgfbetareceptor":"TGF-beta receptors are serine/threonine kinases.","src":"Src is a non-receptor tyrosine kinase."}},
+
+{t:"Signaling & Pharm",q:"Name a Gq-coupled receptor",a:{
+ p:["Alpha-1 adrenergic|alpha 1|α1|alpha1 adrenergic receptor"],c:["M3 muscarinic|M3"],
+ s:["M1 muscarinic|M1","H1 histamine|H1","AT1|angiotensin II type 1","V1 vasopressin|V1|V1a"],
+ r:["5-HT2|5-HT2A|serotonin 2A","ETA|endothelin A","TP|thromboxane receptor","EP1","FP|PGF2alpha receptor","M5"],
+ d:["Oxytocin receptor","GnRH receptor","TRH receptor","CaSR|calcium sensing receptor"],k:"PAR1|thrombin receptor|protease activated receptor 1"},
+ n:{"beta1":"β1 is Gs.","beta2":"β2 is Gs.","alpha2":"α2 is Gi.","m2":"M2 is Gi.","d1":"D1 is Gs.","d2":"D2 is Gi.","h2":"H2 is Gs."}},
+
+{t:"Signaling & Pharm",q:"Name a drug or toxin that hijacks a G protein pathway",a:{
+ p:["Cholera toxin"],c:["Pertussis toxin"],
+ s:["Albuterol","Epinephrine","Propranolol","Phenylephrine","Atropine","Forskolin"],
+ r:["Heat labile toxin|E. coli heat labile toxin|LT","Theophylline|PDE inhibitor","Sildenafil","Clonidine","Isoproterenol"],
+ d:["Bordetella adenylate cyclase toxin|CyaA","Anthrax edema factor|edema toxin","Gallein","Suramin"],k:"Mastoparan"},
+ n:{"aspirin":"Aspirin works on COX, not on G proteins directly."}},
+
+{t:"Lipid & Inflammation",q:"Name an NSAID",a:{
+ p:["Ibuprofen|Advil|Motrin","Aspirin|ASA|acetylsalicylic acid"],c:["Naproxen|Aleve","Celecoxib|Celebrex"],
+ s:["Indomethacin","Diclofenac|Voltaren","Ketorolac|Toradol"],
+ r:["Meloxicam","Piroxicam","Etodolac","Nabumetone","Sulindac"],
+ d:["Mefenamic acid","Rofecoxib|Vioxx","Ketoprofen","Flurbiprofen","Oxaprozin","Diflunisal","Tolmetin"],k:"Salsalate"},
+ n:{"acetaminophen":"Acetaminophen is not an NSAID: weak peripheral COX inhibition, no anti-inflammatory effect.","tylenol":"Acetaminophen is not an NSAID.","paracetamol":"Paracetamol (APAP) is not an NSAID.","apap":"APAP is not an NSAID."}},
+
+{t:"Lipid & Inflammation",q:"Name an arachidonic acid derived lipid mediator",a:{
+ p:["PGE2|prostaglandin E2"],c:["TXA2|thromboxane A2","LTB4|leukotriene B4"],
+ s:["PGI2|prostacyclin","PGD2|prostaglandin D2","PGF2alpha|PGF2α|PGF2a","LTC4","LTD4"],
+ r:["LTE4","5-HETE","12-HETE","Lipoxin A4|LXA4|lipoxin","Anandamide|AEA"],
+ d:["20-HETE","EETs|epoxyeicosatrienoic acids","2-AG|2-arachidonoylglycerol","PGH2","PGG2","5-HPETE"],k:"15d-PGJ2|PGJ2|15-deoxy PGJ2"},
+ n:{"resolvin":"Resolvins come from omega-3s (EPA/DHA), not arachidonic acid.","bradykinin":"Bradykinin is a peptide from kininogen, not a lipid."}},
+
+{t:"Lipid & Inflammation",q:"Name a mediator behind a cardinal sign of inflammation",a:{
+ p:["Histamine"],c:["Prostaglandins|prostaglandin","Bradykinin"],
+ s:["IL-1|IL1|interleukin 1","TNF|TNF-alpha|TNFα","Nitric oxide","Leukotrienes|leukotriene","Serotonin|5-HT","C3a","C5a","IL-6|IL6"],
+ r:["PAF|platelet activating factor","Kallikrein","Substance P","Nerve growth factor|NGF"],
+ d:["Neurokinin A","Tryptase|mast cell tryptase","VEGF"],k:"CGRP|calcitonin gene related peptide"}},
+
+{t:"Cell Death & Cycle",q:"Name a protein that drives or blocks apoptosis",a:{
+ p:["Caspase 3|casp3","Bcl-2|Bcl2"],c:["Cytochrome c|cyt c","p53|TP53"],
+ s:["Caspase 8","Caspase 9","Bax","Bak","Apaf-1|Apaf1","Fas|CD95","FasL|Fas ligand"],
+ r:["Bid|tBid","Bad","Bim","PUMA","Noxa","Bcl-xL","Mcl-1","Caspase 7","Caspase 6","XIAP|IAP","FADD","TRADD","Smac|DIABLO"],
+ d:["c-FLIP|FLIP","Survivin","Caspase 10","Bok","AIF|apoptosis inducing factor","Endonuclease G","ICAD","CAD|caspase activated DNase"],k:"Omi|HtrA2"},
+ n:{"caspase1":"Caspase-1 drives pyroptosis via the inflammasome, not classic apoptosis."}},
+
+{t:"Cell Death & Cycle",q:"Name a type of necrosis or non-apoptotic cell death",a:{
+ p:["Coagulative necrosis|coagulative"],c:["Liquefactive necrosis|liquefactive","Caseous necrosis|caseous"],
+ s:["Fat necrosis|fat|enzymatic fat necrosis","Fibrinoid necrosis|fibrinoid","Gangrenous necrosis|gangrene|gangrenous","Pyroptosis"],
+ r:["Necroptosis","Autophagic cell death|autophagy|autophagy associated cell death","Ferroptosis","NETosis"],
+ d:["Parthanatos","Entosis","Mitotic catastrophe","Wet gangrene","Dry gangrene"],k:"Cuproptosis"},
+ n:{"apoptosis":"Apoptosis is the one excluded here.","anoikis":"Anoikis is apoptosis triggered by detachment."}},
+
+{t:"Cell Death & Cycle",q:"Name a cyclin, CDK, or direct CDK regulator",a:{
+ p:["Cyclin D|cyclin D1","CDK4"],c:["p21|Cip1|WAF1","Cyclin B"],
+ s:["Cyclin E","Cyclin A","CDK2","CDK6","CDK1|cdc2","p27|Kip1","p16|INK4a"],
+ r:["p15|INK4b","p57|Kip2","p18|INK4c","p19|INK4d","CDK7|CAK|CDK activating kinase","Cyclin H","Wee1"],
+ d:["Cdc25|Cdc25A|Cdc25C","Cdh1","Cdc20","APC/C|anaphase promoting complex","Palbociclib","Ribociclib","Abemaciclib"],k:"Myt1"},
+ n:{"rb":"pRb is a CDK substrate, not a direct CDK regulator.","e2f":"E2F is downstream of pRb, not a CDK regulator."}},
+
+{t:"Cell Death & Cycle",q:"Name a cell cycle checkpoint protein or DNA damage sensor",a:{
+ p:["p53|TP53"],c:["ATM","Mdm2|HDM2"],
+ s:["ATR","Chk1|CHEK1","Chk2|CHEK2","p21|Cip1","ARF|p14ARF|p19ARF","BRCA1"],
+ r:["Mad2","BubR1","Bub1","Mps1","γH2AX|gamma H2AX|H2AX","MRN complex|MRN","53BP1","Mdmx|Mdm4"],
+ d:["Mre11","Rad50","NBS1|nibrin","Rad17","9-1-1 complex|Rad9","TopBP1","Claspin","Mad1"],k:"Securin"}},
+
+{t:"Cancer",q:"Name a tumor suppressor gene",a:{
+ p:["p53|TP53","RB|RB1|pRb"],c:["BRCA1","BRCA2"],
+ s:["APC","PTEN","CDKN2A|p16","NF1","VHL","WT1"],
+ r:["NF2","ATM","CHEK2","PALB2","MLH1","MSH2","SMAD4|DPC4","STK11|LKB1","TSC1","TSC2","PTCH1|PTCH"],
+ d:["CDH1|E-cadherin","BAP1","MEN1","DCC","SDHB","ARID1A","PMS2","MSH6","BLM"],k:"FHIT"},
+ n:{"ras":"RAS is an oncogene.","kras":"KRAS is an oncogene.","myc":"MYC is an oncogene.","her2":"HER2 is an oncogene."}},
+
+{t:"Cancer",q:"Name an oncogene",a:{
+ p:["RAS|KRAS","MYC|c-Myc"],c:["HER2|ERBB2","BCR-ABL|BCR ABL|Philadelphia chromosome"],
+ s:["BRAF|Raf","EGFR","HRAS","NRAS","ABL|ABL1","Cyclin D1|CCND1","BCL2","N-MYC|MYCN"],
+ r:["KIT|c-Kit","RET","ALK","MET","PIK3CA","CDK4","MDM2","L-MYC|MYCL","JAK2","FLT3"],
+ d:["ROS1","NTRK","SRC","IDH1","PDGFRA","FGFR3","CTNNB1|beta-catenin","TERT","SIS|PDGFB","TMPRSS2-ERG|ERG"],k:"PML-RARA|PML RARA|PML-RARalpha"},
+ n:{"p53":"p53 is a tumor suppressor.","rb":"RB is a tumor suppressor.","pten":"PTEN is a tumor suppressor."}},
+
+{t:"Cancer",q:"Name a hallmark of cancer",a:{
+ p:["Sustained proliferative signaling|sustaining proliferative signaling|proliferative signaling|sustained proliferation"],
+ c:["Evading growth suppressors|evading growth suppression","Resisting cell death|evading apoptosis|resisting apoptosis"],
+ s:["Replicative immortality|enabling replicative immortality|limitless replicative potential|immortality","Angiogenesis|inducing angiogenesis|sustained angiogenesis","Invasion and metastasis|activating invasion and metastasis|metastasis|invasion"],
+ r:["Deregulating cellular energetics|reprogramming energy metabolism|metabolic reprogramming|warburg effect|deregulated metabolism","Avoiding immune destruction|immune evasion|evading immune destruction"],
+ d:["Genome instability|genome instability and mutation|genomic instability","Tumor promoting inflammation|inflammation","Phenotypic plasticity|unlocking phenotypic plasticity","Senescent cells","Nonmutational epigenetic reprogramming|epigenetic reprogramming"],
+ k:"Polymorphic microbiomes|microbiome"}},
+
+{t:"Cancer",q:"Name a targeted therapy that exploits oncogene addiction",a:{
+ p:["Imatinib|Gleevec"],c:["Trastuzumab|Herceptin"],
+ s:["Erlotinib","Gefitinib","Vemurafenib","Osimertinib","Dasatinib","Nilotinib","Cetuximab"],
+ r:["Crizotinib","Dabrafenib","Pertuzumab","Lapatinib","Sotorasib","All-trans retinoic acid|ATRA|tretinoin","Ruxolitinib","Bevacizumab"],
+ d:["Alectinib","Adagrasib","Larotrectinib","Ivosidenib","Selpercatinib","Midostaurin","Trametinib","Arsenic trioxide"],k:"Ponatinib"}},
+
+{t:"Development",q:"Name a neural crest derivative",a:{
+ p:["Melanocytes|melanocyte"],c:["Adrenal medulla|chromaffin cells","Schwann cells|Schwann cell"],
+ s:["Dorsal root ganglia|DRG|dorsal root ganglion","Sympathetic ganglia|sympathetic chain","Parasympathetic ganglia","Enteric nervous system|enteric neurons|myenteric plexus","Pia mater|pia","Arachnoid mater|arachnoid","Odontoblasts","Facial bones|craniofacial bones|skull bones"],
+ r:["Parafollicular cells|C cells","Aorticopulmonary septum|conotruncal septum|spiral septum","Cranial nerve ganglia","Pharyngeal arch cartilage","Glomus cells|carotid body","Satellite glia"],
+ d:["Iris stroma","Corneal endothelium","Corneal stroma","Dermis of the face|facial dermis","Ciliary body"],k:"Ciliary muscle"},
+ n:{"dura":"Dura mater is mesoderm; pia and arachnoid are neural crest.","duramater":"Dura mater is mesoderm; pia and arachnoid are neural crest.","microglia":"Microglia come from yolk sac mesoderm.","retina":"The retina is neuroectoderm, not neural crest."}},
+
+{t:"Development",q:"Name a pharyngeal arch or pouch derivative",a:{
+ p:["Mandible","Thymus"],c:["Malleus","Incus","Stapes","Parathyroid glands|parathyroid"],
+ s:["Hyoid|hyoid bone","Thyroid cartilage","Muscles of mastication|masseter|temporalis","Muscles of facial expression|facial muscles","Palatine tonsil|tonsil","Middle ear cavity|tympanic cavity","Eustachian tube|auditory tube","Meckel's cartilage|meckel cartilage","Reichert's cartilage|reichert cartilage","Styloid process","Cricoid cartilage","Arytenoid cartilage"],
+ r:["Ultimobranchial body","Sphenomandibular ligament","Stylohyoid ligament","Anterior belly of digastric","Posterior belly of digastric","Tensor tympani","Tensor veli palatini","Mylohyoid","Stapedius","Cricothyroid","Superior parathyroid","Inferior parathyroid"],
+ d:["Anterior ligament of malleus","Maxillary artery","Stapedial artery","Common carotid artery|internal carotid artery","Aortic arch","Right subclavian artery","Ductus arteriosus","Corniculate cartilage","Cuneiform cartilage","Lesser horn of hyoid|lesser cornu"],k:"Stylopharyngeus"}},
+
+{t:"Development",q:"Name a mesoderm derivative",a:{
+ p:["Heart","Skeletal muscle|muscle"],c:["Kidney|kidneys","Blood"],
+ s:["Bone","Cartilage","Dermis","Spleen","Gonads","Adrenal cortex","Blood vessels|endothelium","Smooth muscle","Notochord","Somites","Ureters|ureter","Uterus","Fallopian tubes|uterine tubes|oviducts","Serous membranes|pleura|peritoneum|pericardium"],
+ r:["Nucleus pulposus","Lymphatics|lymphatic vessels","Microglia","Vas deferens|ductus deferens","Seminal vesicles","Epididymis","Upper vagina","Dura mater|dura","Kupffer cells","Sclerotome","Myotome","Dermatome"],
+ d:["Mesonephric duct|wolffian duct","Paramesonephric duct|mullerian duct","Intermediate mesoderm","Lateral plate mesoderm","Splanchnic mesoderm","Somatic mesoderm|somatopleure","Angioblasts","Hemangioblast","Ureteric bud","Metanephric blastema|metanephric mesenchyme"],k:"Septum transversum"},
+ n:{"adrenalmedulla":"Adrenal medulla is neural crest.","liver":"Hepatocytes are endoderm (though Kupffer cells and stroma are mesoderm)."}},
+
+{t:"Development",q:"Name an endoderm derivative",a:{
+ p:["Liver","Lungs|lung"],c:["Pancreas","Thyroid|thyroid follicular cells"],
+ s:["Gut epithelium|GI epithelium|gut lining","Bladder epithelium|urinary bladder|bladder","Thymus","Parathyroids|parathyroid","Urethra","Trachea","Gallbladder","Stomach","Small intestine","Colon"],
+ r:["Prostate","Bulbourethral glands|cowper glands","Bartholin glands|greater vestibular glands","Hepatocytes","Pneumocytes","Allantois","Yolk sac","Lower vagina","Urachus","Eustachian tube epithelium|middle ear epithelium"],
+ d:["Hepatic diverticulum","Laryngeal epithelium","Urogenital sinus","Cloaca","Pancreatic islets|islets of langerhans","Paneth cells","Ultimobranchial body"],k:"Sinovaginal bulbs"},
+ n:{"primordialgermcells":"PGCs arise from epiblast and only migrate through the yolk sac wall.","heart":"The heart is mesoderm."}},
+
+{t:"Development",q:"Name a teratogen or exposure tied to a congenital anomaly",a:{
+ p:["Alcohol|ethanol","Thalidomide"],c:["Isotretinoin|accutane|vitamin A|retinoids","Valproate|valproic acid"],
+ s:["Warfarin","Phenytoin","Lithium","ACE inhibitors|lisinopril","Rubella","CMV|cytomegalovirus","Toxoplasma|toxoplasmosis","Zika","Tetracycline","Methotrexate"],
+ r:["Carbamazepine","Diethylstilbestrol|DES","Mycophenolate","Maternal diabetes|hyperglycemia","Syphilis","HSV|herpes simplex","Varicella","Lead","Ionizing radiation|radiation","Methimazole","Misoprostol"],
+ d:["Mercury|methylmercury","Aminoglycosides|streptomycin","Fluconazole high dose","Leflunomide","Hyperthermia|maternal fever","Cocaine","Folate deficiency"],k:"Cyclopamine"}},
+
+{t:"Biochem & Nutrition",q:"Name an enzyme in nucleotide or one-carbon metabolism",a:{
+ p:["Thymidylate synthase","DHFR|dihydrofolate reductase"],c:["Ribonucleotide reductase","HGPRT|HPRT|hypoxanthine guanine phosphoribosyltransferase"],
+ s:["Methionine synthase","Methylmalonyl-CoA mutase","PRPP synthetase","Glutamine PRPP amidotransferase|PPAT|amidophosphoribosyltransferase","CPS II|carbamoyl phosphate synthetase II|CPS2","Aspartate transcarbamoylase|ATCase","Xanthine oxidase","Adenosine deaminase|ADA","MTHFR","UMP synthase|orotate phosphoribosyltransferase|OMP decarboxylase"],
+ r:["APRT","Dihydroorotate dehydrogenase|DHODH","Cystathionine beta-synthase|CBS","Methionine adenosyltransferase|SAM synthetase|MAT","Serine hydroxymethyltransferase|SHMT","Purine nucleoside phosphorylase|PNP","IMP dehydrogenase|IMPDH","Thymidine kinase"],
+ d:["Adenylosuccinate lyase","Adenylosuccinate synthetase","GMP synthetase","CTP synthetase","Dihydroorotase","BHMT|betaine homocysteine methyltransferase","Cystathionine gamma-lyase","AICAR transformylase","GAR transformylase"],k:"GAMT|guanidinoacetate methyltransferase"}},
+
+{t:"Biochem & Nutrition",q:"Name a drug that disrupts nucleotide synthesis",a:{
+ p:["Methotrexate","5-FU|5-fluorouracil|fluorouracil"],c:["Hydroxyurea","6-MP|6-mercaptopurine|mercaptopurine"],
+ s:["Azathioprine","Capecitabine","Mycophenolate|MMF|mycophenolate mofetil","Trimethoprim","Pemetrexed","Leflunomide","Cytarabine|Ara-C","Gemcitabine"],
+ r:["Pyrimethamine","6-Thioguanine|6-TG|thioguanine","Fludarabine","Cladribine","Ribavirin","Pralatrexate","Teriflunomide"],
+ d:["Clofarabine","Nelarabine","Decitabine","Azacitidine","Sulfamethoxazole|sulfonamides","Proguanil","Floxuridine"],k:"Pentostatin"},
+ n:{"leucovorin":"Leucovorin is a folate rescue agent, not an inhibitor (it boosts 5-FU but rescues from MTX).","allopurinol":"Allopurinol blocks purine breakdown (xanthine oxidase), not synthesis."}},
+
+{t:"Biochem & Nutrition",q:"Name a cause or risk factor for B12 or folate deficiency",a:{
+ p:["Pernicious anemia","Vegan diet|veganism|strict vegetarian"],c:["Alcohol use disorder|alcoholism|alcohol","Methotrexate"],
+ s:["Pregnancy","Gastric bypass|gastrectomy|bariatric surgery","Ileal resection|terminal ileum resection|Crohn disease|Crohn's disease","Celiac disease","Metformin","PPIs|proton pump inhibitor|omeprazole","Phenytoin","Trimethoprim","Autoimmune gastritis","Hemolytic anemia"],
+ r:["Diphyllobothrium latum|fish tapeworm","SIBO|bacterial overgrowth|blind loop","Nitrous oxide|N2O","Pancreatic insufficiency","H2 blockers","Atrophic gastritis","Sulfasalazine","Tropical sprue","Dialysis"],
+ d:["Imerslund-Grasbeck syndrome|Imerslund Gräsbeck","Transcobalamin II deficiency","Pyrimethamine","Valproate","Carbamazepine","Colchicine","Exfoliative dermatitis"],k:"Goat's milk|goat milk"}},
+
+{t:"Biochem & Nutrition",q:"Name a therapeutic diet or nutrition support route",a:{
+ p:["Low sodium|2g sodium|sodium restricted","Diabetic diet|consistent carbohydrate|carbohydrate controlled"],c:["Clear liquid","Full liquid"],
+ s:["Renal diet","Low fat","Gluten free","Mechanical soft","Pureed","Heart healthy|cardiac diet","Enteral nutrition|tube feeding","Parenteral nutrition|TPN","Low residue|low fiber","High protein","Fluid restriction"],
+ r:["Dysphagia diet|IDDSI","Ketogenic","Low FODMAP","Neutropenic diet","Minced and moist","Thickened liquids|nectar thick|honey thick","PPN|peripheral parenteral nutrition","Oral nutrition supplement|ONS|Ensure","Low potassium","Low phosphorus","NG tube|nasogastric tube"],
+ d:["PEG tube|gastrostomy","Nasojejunal|NJ tube|post-pyloric","Elemental formula","Peptide based formula","Low oxalate","Low phenylalanine|phe restricted","Bland diet"],k:"Low tyramine"}},
+
+{t:"Biochem & Nutrition",q:"Name a DRI term or dietary guidance tool",a:{
+ p:["RDA|recommended dietary allowance","MyPlate"],c:["UL|tolerable upper intake level|upper limit","AI|adequate intake"],
+ s:["EAR|estimated average requirement","AMDR|acceptable macronutrient distribution range","Healthy Eating Plate|Harvard plate","Nutrition Facts label|food label|nutrition facts panel","Daily Value|percent daily value|%DV","DRI|dietary reference intakes"],
+ r:["Plant-Based Plate|plant based plate","EER|estimated energy requirement","CDRR|chronic disease risk reduction","Dietary Guidelines for Americans|DGA","Serving size"],
+ d:["Harris-Benedict","Mifflin-St Jeor","HEI|healthy eating index"],k:"Atwater factors|4-4-9|atwater"}},
+
+{t:"Heme & Hemostasis",q:"Name a myeloid lineage cell or precursor",a:{
+ p:["Neutrophil"],c:["Megakaryocyte","Monocyte"],
+ s:["Erythrocyte|RBC|red blood cell","Platelet","Eosinophil","Basophil","Macrophage","Reticulocyte"],
+ r:["Myeloblast","Promyelocyte","Myelocyte","Metamyelocyte","Band cell|band","Proerythroblast|pronormoblast|rubriblast","Monoblast","CMP|common myeloid progenitor","Dendritic cell"],
+ d:["Basophilic erythroblast|basophilic normoblast","Polychromatophilic erythroblast|polychromatic normoblast","Orthochromatic erythroblast|orthochromatic normoblast","Megakaryoblast","Promonocyte","GMP|granulocyte macrophage progenitor","MEP|megakaryocyte erythroid progenitor","BFU-E","CFU-E","CFU-GM"],k:"Mast cell"},
+ n:{"lymphocyte":"Lymphocytes are lymphoid.","tcell":"T cells are lymphoid.","bcell":"B cells are lymphoid.","nkcell":"NK cells are lymphoid."}},
+
+{t:"Heme & Hemostasis",q:"Name an RBC morphology seen on a smear",a:{
+ p:["Sickle cell|drepanocyte","Target cell|codocyte"],c:["Schistocyte|helmet cell","Spherocyte"],
+ s:["Elliptocyte|ovalocyte","Macro-ovalocyte","Teardrop cell|dacrocyte","Bite cell|degmacyte","Howell-Jolly bodies|howell jolly","Heinz bodies","Basophilic stippling","Polychromasia","Rouleaux","Nucleated RBC|NRBC","Burr cell|echinocyte"],
+ r:["Acanthocyte|spur cell","Stomatocyte","Pencil cell","Pappenheimer bodies","Cabot rings","Blister cell","Agglutination","Anisocytosis","Poikilocytosis","Keratocyte|horn cell"],
+ d:["Xerocyte","Leptocyte","Hemoglobin C crystals|HbC crystals","Siderocyte"],k:"Knizocyte"},
+ n:{"ringedsideroblast":"Ringed sideroblasts are a marrow finding.","hypersegmentedneutrophil":"Hypersegmented neutrophils are a WBC finding."}},
+
+{t:"Heme & Hemostasis",q:"Name an RBC membrane or cytoskeletal protein",a:{
+ p:["Spectrin|alpha spectrin|beta spectrin"],c:["Ankyrin","Band 3|AE1|anion exchanger 1"],
+ s:["Protein 4.1|band 4.1","Glycophorin A","Actin","Protein 4.2|band 4.2|pallidin"],
+ r:["Glycophorin C","Adducin","Tropomodulin","Rh protein|RhD|RhAG","Duffy antigen|DARC","Dematin|band 4.9","Aquaporin 1","Kell"],
+ d:["GLUT1","CD47","Stomatin|band 7","Tropomyosin","Kx protein","CD55|DAF","CD59"],k:"Piezo1"}},
+
+{t:"Heme & Hemostasis",q:"Name something that right shifts the O2-Hb curve",a:{
+ p:["Increased CO2|CO2|hypercapnia","2,3-BPG|increased 2,3-BPG|BPG|2,3-DPG"],c:["Acidosis|low pH|H+","Fever|increased temperature|temperature|hyperthermia"],
+ s:["Exercise","High altitude|altitude","Anemia","Bohr effect"],
+ r:["HbS|sickle hemoglobin","Pyruvate kinase deficiency","Chronic hypoxia","Hyperthyroidism|thyroid hormone","COPD"],
+ d:["Hemoglobin Seattle|Hb Seattle","Inosine"],k:"Hb Kansas|hemoglobin Kansas"},
+ n:{"co":"Carbon monoxide left shifts the curve.","carbonmonoxide":"Carbon monoxide left shifts the curve.","hbf":"HbF left shifts (binds 2,3-BPG poorly).","fetalhemoglobin":"HbF left shifts.","alkalosis":"Alkalosis left shifts.","methemoglobin":"Methemoglobin left shifts the remaining heme.","hypothermia":"Cold left shifts the curve."}},
+
+{t:"Heme & Hemostasis",q:"Name a coagulation factor by number or name",a:{
+ p:["Thrombin|prothrombin|factor II|factor IIa","Fibrinogen|factor I"],c:["Factor VIII|antihemophilic factor","Factor IX"],
+ s:["Factor X","Factor VII","Factor V","Tissue factor|factor III|thromboplastin|CD142","Factor XIII|fibrin stabilizing factor","von Willebrand factor|vWF"],
+ r:["Factor XI","Factor XII","Hageman factor","Calcium|factor IV|Ca2+"],
+ d:["Prekallikrein","Fletcher factor","HMWK|high molecular weight kininogen","Fitzgerald factor","Christmas factor","Proaccelerin|labile factor","Proconvertin|stable factor"],k:"Stuart-Prower factor|Stuart factor|Stuart Prower"},
+ n:{"factor6":"There is no Factor VI; it turned out to be activated Factor V.","proteinc":"Protein C is a natural anticoagulant, not a numbered factor.","proteins":"Protein S is a cofactor for protein C, not a numbered factor.","antithrombin":"Antithrombin is an anticoagulant serpin.","plasmin":"Plasmin is fibrinolytic.","tpa":"tPA is fibrinolytic."}},
+
+{t:"Heme & Hemostasis",q:"Name a lab test used to work up bleeding or clotting",a:{
+ p:["PT|prothrombin time","INR"],c:["aPTT|PTT|partial thromboplastin time","Platelet count"],
+ s:["Thrombin time|TT","Bleeding time","D-dimer","Fibrinogen level|fibrinogen","Mixing study"],
+ r:["PFA-100|platelet function assay","Ristocetin cofactor|ristocetin","Platelet aggregometry|light transmission aggregometry","vWF antigen","Anti-Xa|anti factor Xa|heparin level","Factor assay|factor activity"],
+ d:["TEG|thromboelastography","ROTEM","Reptilase time","Euglobulin lysis time","dRVVT|dilute Russell viper venom time","Flow cytometry for GPIIb/IIIa"],k:"Urea clot solubility|clot solubility test|urea solubility"}},
+
+{t:"Heme & Hemostasis",q:"Name an inherited bleeding or platelet disorder",a:{
+ p:["Hemophilia A","von Willebrand disease|vWD"],c:["Hemophilia B|Christmas disease","Bernard-Soulier|Bernard Soulier syndrome"],
+ s:["Glanzmann thrombasthenia|Glanzmann","Factor XI deficiency|hemophilia C","Wiskott-Aldrich syndrome"],
+ r:["Factor VII deficiency","Factor XIII deficiency","Afibrinogenemia","Gray platelet syndrome","Storage pool disease|delta storage pool","Hermansky-Pudlak"],
+ d:["Factor X deficiency","Factor V deficiency","Dysfibrinogenemia","Scott syndrome","Quebec platelet disorder","May-Hegglin anomaly|MYH9"],k:"Alpha-2 antiplasmin deficiency|alpha 2 antiplasmin"},
+ n:{"factorvleiden":"Factor V Leiden causes clotting, not bleeding.","itp":"ITP is acquired, not inherited."}},
+
+{t:"Immunology",q:"Name a complement component or regulator",a:{
+ p:["C3","C3b"],c:["MAC|membrane attack complex|C5b-9","C5a"],
+ s:["C1q","C4","C2","C5","C3a","C9","Factor B","Factor D","Properdin|factor P"],
+ r:["C1 inhibitor|C1 esterase inhibitor|C1INH","DAF|CD55|decay accelerating factor","CD59|protectin|MIRL","Factor H","Factor I","MBL|mannose binding lectin","C1r","C1s"],
+ d:["MASP-1","MASP-2","C4BP|C4b binding protein","MCP|CD46","CR1|CD35","CR2|CD21","CR3|CD11b/CD18|Mac-1","Ficolin","C6","C7","C8","iC3b","C3d"],k:"Vitronectin|S protein"}},
+
+{t:"Immunology",q:"Name an antibody isotype or part of an Ig molecule",a:{
+ p:["IgG","IgM"],c:["IgA","IgE"],
+ s:["IgD","Fab","Fc","Heavy chain","Light chain","Variable region","Constant region","Hinge region|hinge"],
+ r:["CDR|complementarity determining region|hypervariable region","Kappa","Lambda","J chain","Secretory component","IgG1","IgG3","Framework region"],
+ d:["IgA1","IgA2","IgG2","IgG4","Idiotype","Paratope","F(ab')2|Fab2","CH2","CH3","Allotype"],k:"Idiotope"}},
+
+{t:"Immunology",q:"Name a CD marker",a:{
+ p:["CD4","CD8"],c:["CD3","CD19"],
+ s:["CD20","CD34","CD45","CD56","CD16","CD14","CD25","CD28","CD40","CD40L|CD154","CD80|B7-1","CD86|B7-2"],
+ r:["CD21","CD1a","CD15","CD30","CD117","CD10","CD5","CD2","CD7","CD11b","CD18","CD55","CD59","CD95","CD152|CTLA-4","CD279|PD-1","CD274|PD-L1"],
+ d:["CD61","CD41","CD42","CD33","CD13","CD64","CD68","CD38","CD138","CD79a","CD22","CD127","CD62L|L-selectin","CD44","CD69","CD31|PECAM"],k:"CD1d"}},
+
+{t:"Immunology",q:"Name a lymphoid organ or tissue",a:{
+ p:["Lymph node","Spleen"],c:["Thymus","Bone marrow"],
+ s:["Tonsils|tonsil","Peyer's patches|peyer patch","MALT|mucosa associated lymphoid tissue","Appendix"],
+ r:["GALT","BALT","Adenoids|pharyngeal tonsil","Waldeyer's ring|waldeyer ring","White pulp","Lingual tonsil"],
+ d:["NALT","Palatine tonsil","Tertiary lymphoid structure|tertiary lymphoid organ","Isolated lymphoid follicle","Cryptopatch","SALT|skin associated lymphoid tissue"],k:"Bursa of Fabricius"}},
+
+{t:"Immunology",q:"Name a histologic structure in the lymph node, spleen, or thymus",a:{
+ p:["Germinal center"],c:["Hassall's corpuscle|hassall corpuscles|thymic corpuscle","Paracortex"],
+ s:["Cortex","Medulla","White pulp","Red pulp","Lymphoid follicle|follicle","Medullary cords","Medullary sinus","Subcapsular sinus","HEV|high endothelial venule"],
+ r:["PALS|periarteriolar lymphoid sheath","Marginal zone","Mantle zone","Splenic cords|cords of Billroth","Trabeculae|trabecula","Capsule","Epithelioreticular cells|thymic epithelial cells|ERCs","Blood-thymus barrier","Afferent lymphatics","Efferent lymphatics","Hilum"],
+ d:["Splenic sinusoids|venous sinuses","Penicillar arterioles","Central arteriole","Corticomedullary junction","Trabecular sinus","Primary follicle","Secondary follicle","Littoral cells|stave cells","Dark zone","Light zone","Tingible body macrophage"],k:"Schweigger-Seidel sheath|ellipsoid"}},
+
+{t:"Immunology",q:"Name a pattern recognition receptor, PAMP, or DAMP",a:{
+ p:["TLR4|toll like receptor 4","LPS|lipopolysaccharide"],c:["TLR2","NOD2"],
+ s:["TLR3","TLR5","TLR7","TLR9","NOD1","NLRP3","RIG-I","Flagellin","dsRNA","Peptidoglycan","CpG DNA|unmethylated CpG","HMGB1","ATP","Uric acid|monosodium urate"],
+ r:["MDA5","Dectin-1","Mannose receptor|CD206","cGAS","STING","AIM2","TLR8","TLR1","TLR6","Lipoteichoic acid|LTA","Heat shock proteins|HSP","Muramyl dipeptide|MDP","Zymosan","Beta-glucan","Scavenger receptor"],
+ d:["NLRC4","Mincle","DC-SIGN","TLR10","S100 proteins|S100","IL-33","Mitochondrial DNA|mtDNA","Formyl peptides|fMLP|N-formylmethionine","NAIP"],k:"Pyrin"}},
+
+{t:"Immunology",q:"Name a cytokine",a:{
+ p:["IL-1|IL1|IL-1beta|IL-1alpha","TNF|TNF-alpha|TNFα"],c:["IL-6","IFN-gamma|interferon gamma|IFNγ"],
+ s:["IL-2","IL-4","IL-10","IL-12","IL-8|CXCL8","IL-17","TGF-beta|TGFβ","IFN-alpha|interferon alpha","IFN-beta|interferon beta","IL-5","IL-13","GM-CSF","IL-7"],
+ r:["IL-21","IL-22","IL-23","IL-18","IL-3","IL-15","IL-33","IL-9","IL-27","IL-35","TSLP","M-CSF","G-CSF","EPO|erythropoietin","TPO|thrombopoietin","Lymphotoxin"],
+ d:["IL-31","IL-36","IL-37","IL-38","IL-25","IL-11","LIF","Oncostatin M","BAFF","APRIL","IFN-lambda|interferon lambda","MIF"],k:"IL-34"}},
+
+{t:"Immunology",q:"Name a molecule in T or B cell activation or its brakes",a:{
+ p:["TCR|T cell receptor","CD28"],c:["CTLA-4","PD-1"],
+ s:["MHC II|MHC class II","MHC I|MHC class I","B7|CD80|CD86","CD40L|CD154","CD40","IL-2","BCR|B cell receptor","Lck","ZAP-70","NFAT","Calcineurin"],
+ r:["ICOS","LFA-1","ICAM-1","PD-L1","LAT","SLP-76","CD45","Ig-alpha|CD79a","Ig-beta|CD79b","Syk","BTK","AID|activation induced cytidine deaminase","CD19","CD21"],
+ d:["LAG-3","TIM-3","TIGIT","CD2","LFA-3|CD58","OX40","4-1BB","ITAM","ITIM","SHP-1","Fyn","Lyn","PLC-gamma|PLCγ1","AP-1"],k:"SAP|SLAM associated protein"}},
+
+{t:"Immunology",q:"Name an immunodeficiency or complement disorder",a:{
+ p:["SCID|severe combined immunodeficiency","DiGeorge syndrome|DiGeorge|22q11 deletion"],c:["Bruton agammaglobulinemia|XLA|X-linked agammaglobulinemia","Chronic granulomatous disease|CGD"],
+ s:["Wiskott-Aldrich syndrome","Hereditary angioedema|C1 inhibitor deficiency","Selective IgA deficiency|IgA deficiency","CVID|common variable immunodeficiency","Hyper-IgM syndrome","LAD|leukocyte adhesion deficiency","Ataxia telangiectasia","ADA deficiency|adenosine deaminase deficiency"],
+ r:["Chediak-Higashi","Hyper-IgE syndrome|Job syndrome","PNH|paroxysmal nocturnal hemoglobinuria","Terminal complement deficiency|C5-C9 deficiency|MAC deficiency","C2 deficiency","MPO deficiency|myeloperoxidase deficiency","IL-12 receptor deficiency|IFN-gamma receptor deficiency","Chronic mucocutaneous candidiasis"],
+ d:["IPEX","APECED|APS-1","MBL deficiency","C3 deficiency","Properdin deficiency","NEMO deficiency","ALPS|autoimmune lymphoproliferative syndrome","XLP|X-linked lymphoproliferative","Omenn syndrome","ZAP-70 deficiency","Bare lymphocyte syndrome|MHC II deficiency"],k:"Reticular dysgenesis"}},
+
+{t:"Micro & Vaccines",q:"Name a microbial virulence factor",a:{
+ p:["Capsule","Endotoxin|LPS"],c:["M protein","Exotoxin"],
+ s:["Pili|fimbriae","Flagella","Biofilm","Protein A","Streptolysin O","Cholera toxin","Pertussis toxin","Hemagglutinin","Neuraminidase","IgA protease","Coagulase","Hyaluronidase","Superantigen"],
+ r:["Streptokinase","Streptolysin S","Pyrogenic exotoxin|SpeA|erythrogenic toxin","C5a peptidase","Panton-Valentine leukocidin|PVL|leukocidin","Type III secretion system|T3SS","Siderophores","DNase","Lipoteichoic acid","Adhesins","Catalase","Diphtheria toxin","Tetanus toxin","Botulinum toxin"],
+ d:["Type IV secretion system","Invasin","Internalin","Antigenic variation","Shiga toxin","TSST-1|toxic shock syndrome toxin","Exfoliative toxin","Protein G","Sortase","Cord factor"],k:"Protein F|fibronectin binding protein"}},
+
+{t:"Micro & Vaccines",q:"Name a route or element of bacterial horizontal gene transfer",a:{
+ p:["Conjugation","Transformation"],c:["Transduction","Plasmid"],
+ s:["Transposon|transposition","Integron","F plasmid|F factor","Generalized transduction","Specialized transduction","R plasmid|resistance plasmid"],
+ r:["Insertion sequence","Sex pilus","Lysogenic conversion|phage conversion","Hfr","Bacteriophage|phage","Natural competence|competence","Gene cassette"],
+ d:["Outer membrane vesicles|membrane vesicles","Integrative conjugative element|ICE|conjugative transposon","Nanotubes","Pathogenicity island","Transposase"],k:"Gene transfer agent|GTA"},
+ n:{"binaryfission":"Binary fission is vertical transfer.","mutation":"Mutation is vertical, not horizontal transfer."}},
+
+{t:"Micro & Vaccines",q:"Name a vaccine platform or vaccine ingredient",a:{
+ p:["Live attenuated","Inactivated|killed"],c:["mRNA vaccine|mRNA","Toxoid"],
+ s:["Subunit","Conjugate","Recombinant","Adjuvant","Viral vector","Polysaccharide vaccine","Alum|aluminum salts|aluminum hydroxide"],
+ r:["VLP|virus-like particle","DNA vaccine","MF59","AS01","AS04","Carrier protein"],
+ d:["CpG 1018","Matrix-M|saponin","QS-21","Thimerosal","Lipid nanoparticle|LNP","Squalene","MPL|monophosphoryl lipid A"],k:"CRM197"}},
+
+{t:"Micro & Vaccines",q:"Name a Streptococcus pyogenes syndrome or sequela",a:{
+ p:["Strep throat|pharyngitis|streptococcal pharyngitis"],c:["Rheumatic fever|acute rheumatic fever","Scarlet fever"],
+ s:["Impetigo","Cellulitis","Necrotizing fasciitis","Poststreptococcal glomerulonephritis|PSGN","Erysipelas","Streptococcal toxic shock syndrome|STSS|toxic shock"],
+ r:["Rheumatic heart disease","Sydenham chorea","PANDAS","Peritonsillar abscess","Puerperal fever|puerperal sepsis"],
+ d:["Bacteremia","Myositis","Lymphangitis","Perianal dermatitis|perianal streptococcal dermatitis","Guttate psoriasis","Erythema marginatum"],k:"Strawberry tongue"}},
+
+{t:"Health & Society",q:"Name a social or structural determinant of health",a:{
+ p:["Income|poverty","Education"],c:["Housing","Racism|structural racism"],
+ s:["Food insecurity","Transportation","Health insurance|insurance status","Employment","Neighborhood|built environment","Social support","Health literacy","Access to care","Redlining"],
+ r:["Residential segregation|segregation","Incarceration","Language barriers","Digital divide|broadband access","Pollution|environmental exposures","Wealth gap|wealth","Occupational exposure|essential work","Discrimination","ACEs|adverse childhood experiences"],
+ d:["Gentrification","Food deserts|food swamps","Medicaid expansion","Zoning","Minimum wage","Intergenerational wealth"],k:"Paid sick leave"}},
+
+{t:"Health & Society",q:"Name a formal or informal food assistance program",a:{
+ p:["SNAP|food stamps","WIC"],c:["National School Lunch Program|NSLP|school lunch","Food bank|food pantry"],
+ s:["School Breakfast Program|SBP|school breakfast","Summer Food Service Program|SFSP|summer meals","Meals on Wheels","Soup kitchen","CACFP|Child and Adult Care Food Program","TEFAP|emergency food assistance program","Community Eligibility Provision|CEP"],
+ r:["Fresh Fruit and Vegetable Program|FFVP","Summer EBT|SUN Bucks","CSFP|commodity supplemental food program","Senior Farmers Market Nutrition Program","Double Up Food Bucks","Produce prescription|food is medicine|food pharmacy","Medically tailored meals","Community garden","Mutual aid"],
+ d:["FDPIR|food distribution program on indian reservations","GusNIP","SNAP-Ed","Healthy Incentives Program|HIP","Little free pantry","Gleaning","Afterschool snack program"],k:"Special Milk Program"}},
+
+{t:"Health & Society",q:"Name a disease of collagen, elastin, or the ECM",a:{
+ p:["Marfan syndrome|marfan","Ehlers-Danlos syndrome|EDS|ehlers danlos"],c:["Osteogenesis imperfecta|OI","Scurvy"],
+ s:["Alport syndrome","Loeys-Dietz syndrome","Menkes disease","Epidermolysis bullosa","Hurler syndrome|mucopolysaccharidosis|MPS","Hunter syndrome"],
+ r:["Goodpasture syndrome","Homocystinuria","Pseudoxanthoma elasticum","Cutis laxa","Shprintzen-Goldberg syndrome","Bethlem myopathy"],
+ d:["Williams syndrome","Supravalvular aortic stenosis","Ullrich congenital muscular dystrophy","Sanfilippo syndrome","Morquio syndrome"],k:"Beals syndrome|congenital contractural arachnodactyly"}},
+
+/* ===== Wave 2: built from the FOS II lecture notes ===== */
+{t:"Signaling & Pharm",q:"Name a ligand for a nuclear receptor",a:{
+ p:["Estrogen|estradiol","Cortisol|glucocorticoid|glucocorticoids"],c:["Testosterone|androgen|androgens","Thyroid hormone|T3|T4|thyroxine"],
+ s:["Progesterone","Aldosterone","Vitamin D|calcitriol","Retinoic acid|vitamin A|ATRA","DHT|dihydrotestosterone"],
+ r:["Dexamethasone","Prednisone","Tamoxifen","Pioglitazone|thiazolidinediones|PPAR gamma agonist","Spironolactone","Fatty acids"],
+ d:["Bile acids","Oxysterols","Fibrates|fenofibrate","Mifepristone","Bexarotene"],k:"9-cis retinoic acid|9 cis retinoic acid"},
+ n:{"insulin":"Insulin uses a receptor tyrosine kinase.","epinephrine":"Epinephrine acts on GPCRs.","prolactin":"Prolactin uses a JAK-associated receptor.","oxytocin":"Oxytocin acts on a Gq GPCR."}},
+
+{t:"Signaling & Pharm",q:"Name a ligand-gated ion channel",a:{
+ p:["Nicotinic ACh receptor|nicotinic|nAChR|nicotinic acetylcholine receptor"],c:["GABA-A receptor|GABA-A|GABAA"],
+ s:["NMDA receptor|NMDA","AMPA receptor|AMPA","Glycine receptor","5-HT3 receptor|5-HT3"],
+ r:["Kainate receptor|kainate","P2X receptor|P2X"],
+ d:["Ryanodine receptor|RyR","ASIC|acid sensing ion channel","CNG channel|cyclic nucleotide gated channel","ZAC|zinc activated channel"],k:"IP3 receptor|IP3R"},
+ n:{"muscarinic":"Muscarinic receptors are GPCRs.","gabab":"GABA-B is a GPCR.","histamine":"Histamine receptors are GPCRs (lecture example)."}},
+
+{t:"Signaling & Pharm",q:"Name a molecule in the RTK, Ras/MAPK, or PI3K/Akt pathway",a:{
+ p:["Ras","Akt|PKB|protein kinase B"],c:["PI3K|phosphoinositide 3-kinase","ERK|MAPK"],
+ s:["Raf","MEK|MAPKK","mTOR","PIP3","Grb2","SOS","PTEN","GSK3|glycogen synthase kinase 3","IRS-1|IRS1"],
+ r:["RasGAP|GAP|GTPase activating protein","PDK1","Shc","Elk-1","Glycogen synthase","FOXO","PIP2"],
+ d:["TSC2|tuberin","Raptor","Rictor","S6 kinase|p70S6K","4E-BP1","KSR","14-3-3"],k:"Rheb"},
+ n:{"camp":"cAMP belongs to GPCR/Gs signaling.","smad":"SMADs belong to TGF-beta signaling."}},
+
+{t:"Signaling & Pharm",q:"Name a way a signal gets dampened, desensitized, or tolerated",a:{
+ p:["Receptor downregulation|downregulation"],c:["Beta-arrestin|arrestin","Receptor phosphorylation|desensitization"],
+ s:["Receptor internalization|internalization|endocytosis","GRK|GPCR kinase","Exhaustion of mediators|mediator depletion","Increased metabolic degradation|metabolic tolerance","Physiological adaptation|homeostatic response","Negative feedback"],
+ r:["Phosphodiesterase|PDE","RGS proteins|RGS","PKA feedback phosphorylation|PKA","PKC phosphorylation|PKC","Decreased receptor synthesis"],
+ d:["Active drug extrusion|efflux pump|P-glycoprotein","Uncoupling","Tonic signaling"],k:"Intrinsic GTPase activity|GTP hydrolysis"}},
+
+{t:"Signaling & Pharm",q:"Name a feature, step, or treatment in acetaminophen toxicity",a:{
+ p:["N-acetylcysteine|NAC","NAPQI"],c:["Centrilobular necrosis|zone 3 necrosis","Glutathione depletion|glutathione"],
+ s:["Rumack-Matthew nomogram|nomogram|Matthew-Rumack nomogram","Activated charcoal|charcoal","Elevated AST|elevated ALT|transaminitis","Jaundice","Prolonged PT|elevated INR","Hypoglycemia","Metabolic acidosis|lactic acidosis","CYP2E1","Hepatic encephalopathy","Nausea and vomiting|vomiting"],
+ r:["CYP1A2","CYP3A4","Glucuronidation","Sulfation","Chronic alcohol use","Acute kidney injury|renal failure","Liver transplant","Hyperammonemia","RUQ pain|right upper quadrant pain","AM404"],
+ d:["King's College criteria|kings college criteria","APAP-protein adducts|protein adducts","Anaphylactoid reaction","Fasting|malnutrition","Methionine"],k:"Pyroglutamic acidosis|5-oxoproline"},
+ n:{"fomepizole":"Fomepizole is for methanol or ethylene glycol."}},
+
+{t:"Lipid & Inflammation",q:"Name an enzyme that makes or breaks down an eicosanoid or endocannabinoid",a:{
+ p:["COX-1|cyclooxygenase 1","COX-2|cyclooxygenase 2"],c:["Phospholipase A2|PLA2","5-lipoxygenase|5-LOX"],
+ s:["Thromboxane synthase","Prostacyclin synthase","LTA4 hydrolase","LTC4 synthase","Phospholipase C|PLC","DAG lipase"],
+ r:["FLAP|5-lipoxygenase activating protein","12-lipoxygenase|12-LOX","15-lipoxygenase|15-LOX","FAAH|fatty acid amide hydrolase","MAGL|monoacylglycerol lipase","PGE synthase"],
+ d:["NAPE-PLD","Dipeptidase","PGD synthase","15-PGDH","Cytochrome P450 epoxygenase|CYP epoxygenase"],k:"Gamma-glutamyl transpeptidase|GGT"}},
+
+{t:"Lipid & Inflammation",q:"Name an acute phase reactant or lab marker of inflammation",a:{
+ p:["CRP|C-reactive protein","ESR|erythrocyte sedimentation rate|sed rate"],c:["Fibrinogen","Ferritin"],
+ s:["Serum amyloid A|SAA","Procalcitonin","Hepcidin","Haptoglobin","Leukocytosis|WBC count","Ceruloplasmin"],
+ r:["C3","Alpha-1 antitrypsin","IL-6 level","Thrombocytosis|platelet count","Mannose-binding lectin|MBL"],
+ d:["Albumin","Transferrin","Prealbumin|transthyretin","Alpha-2 macroglobulin"],k:"Orosomucoid|alpha-1 acid glycoprotein"}},
+
+{t:"Lipid & Inflammation",q:"Name a cause of chronic or granulomatous inflammation",a:{
+ p:["Tuberculosis|TB|mycobacterium tuberculosis","Autoimmune disease|autoimmunity"],c:["Sarcoidosis|sarcoid","Foreign body"],
+ s:["Silica|silicosis","Histoplasmosis|fungal infection","Leprosy","Crohn's disease|crohn disease","Syphilis","Viral hepatitis|persistent viral infection","Rheumatoid arthritis","Chronic granulomatous disease|CGD"],
+ r:["Cat scratch disease|bartonella","Berylliosis|beryllium","Asbestosis|asbestos","Coccidioidomycosis","Granulomatosis with polyangiitis|GPA","Inflammaging|aging","Dysbiosis","Schistosomiasis"],
+ d:["Blastomycosis","Suture granuloma|sutures","Hashimoto thyroiditis|hashimoto","Giant cell arteritis","Hypersensitivity pneumonitis","Talc granuloma"],k:"Lichen planus"}},
+
+{t:"Lipid & Inflammation",q:"Name a type of exudate or tissue pattern of acute inflammation",a:{
+ p:["Abscess","Purulent exudate|pus|suppurative"],c:["Cellulitis","Serous exudate|serous"],
+ s:["Fibrinous exudate|fibrinous","Ulceration|ulcer","Necrotizing fasciitis","Empyema","Effusion","Vesicle|blister"],
+ r:["Furuncle","Granulation tissue","Mucosal exudate","Phlegmon","Carbuncle","Pseudomembrane|pseudomembranous"],
+ d:["Constrictive pericarditis","Hemorrhagic exudate","Catarrhal"],k:"Bread and butter pericarditis"},
+ n:{"transudate":"A transudate is non-inflammatory (pressure imbalance, no permeability change)."}},
+
+{t:"Lipid & Inflammation",q:"Name a step or molecule in leukocyte recruitment",a:{
+ p:["Selectins|selectin","Integrins|integrin"],c:["Diapedesis|transmigration","Rolling"],
+ s:["E-selectin","P-selectin","ICAM-1","VCAM-1","PECAM-1|CD31","Margination","Chemotaxis","IL-8|CXCL8","LTB4","C5a","LFA-1"],
+ r:["L-selectin|CD62L","Sialyl Lewis X","VLA-4","Mac-1|CD11b/CD18","Stasis","Firm adhesion|stable adhesion"],
+ d:["CD99","JAM|junctional adhesion molecule","Fucosyltransferase","ESL-1"],k:"Kindlin-3"}},
+
+{t:"Lipid & Inflammation",q:"Name a neutrophil granule content or microbe-killing mechanism",a:{
+ p:["Myeloperoxidase|MPO","Respiratory burst|NADPH oxidase|oxidative burst"],c:["Defensins","Lysozyme"],
+ s:["Lactoferrin","Collagenase","Neutrophil elastase|elastase","NETs|NETosis","Hypochlorous acid|HOCl","Cathepsin G","Phagocytosis","Superoxide","iNOS|nitric oxide"],
+ r:["Gelatinase|MMP-9","Proteinase 3|PR3","Azurocidin","BPI|bactericidal permeability increasing protein","Cathelicidin|LL-37","Leukocyte alkaline phosphatase|LAP"],
+ d:["Lipocalin|NGAL","Histones","Arginase","Pentraxin 3"],k:"Calprotectin"}},
+
+{t:"Cell Death & Cycle",q:"Name a cellular adaptation or pathologic cellular alteration",a:{
+ p:["Hypertrophy","Atrophy"],c:["Hyperplasia","Metaplasia"],
+ s:["Dysplasia","Autophagy","Steatosis|fatty change|fatty liver","Dystrophic calcification","Metastatic calcification","Lipofuscin"],
+ r:["Barrett esophagus","BPH|benign prostatic hyperplasia","Squamous metaplasia","Hemosiderin|hemosiderosis","Anthracosis|carbon pigment","Endometrial hyperplasia","Lysosomal storage disease"],
+ d:["Hyaline change","Glycogen accumulation","Myositis ossificans","Mallory-Denk bodies|mallory hyaline","Osseous metaplasia"],k:"Psammoma bodies"},
+ n:{"neoplasia":"Neoplasia is autonomous growth, not an adaptation.","necrosis":"Necrosis is cell death, past the point of adaptation."}},
+
+{t:"Cell Death & Cycle",q:"Name a feature of reversible or irreversible cell injury",a:{
+ p:["Cell swelling|cellular swelling","Membrane blebbing|blebbing"],c:["Pyknosis","Karyorrhexis","Karyolysis"],
+ s:["ER dilation","Ribosome detachment|ribosomal detachment","Myelin figures","Chromatin clumping","Loss of membrane integrity|membrane rupture","Mitochondrial swelling","Increased eosinophilia","Lysosomal rupture"],
+ r:["Lactic acidosis","ATP depletion|decreased ATP","Calcium influx|increased intracellular calcium","Lipid peroxidation","Mitochondrial permeability transition","Cytochrome c release","Enzyme leakage|troponin leak"],
+ d:["Loss of microvilli","Cytoplasmic vacuoles","Ghost cells","Na/K pump failure|sodium potassium pump failure"],k:"Flocculent densities"}},
+
+{t:"Cell Death & Cycle",q:"Name a reactive oxygen species, free radical, or antioxidant",a:{
+ p:["Superoxide|O2-","Hydrogen peroxide|H2O2"],c:["Hydroxyl radical|OH","Glutathione|GSH"],
+ s:["Superoxide dismutase|SOD","Catalase","Glutathione peroxidase","Vitamin E|tocopherol","Vitamin C|ascorbate","Nitric oxide","Hypochlorous acid|HOCl|bleach"],
+ r:["Peroxynitrite","Beta-carotene","Myeloperoxidase|MPO","NADPH oxidase","Ferritin","Ceruloplasmin","Fenton reaction"],
+ d:["Glutathione reductase","Thioredoxin","Peroxiredoxin","Selenium","Uric acid","Lipid peroxyl radical"],k:"Singlet oxygen"}},
+
+{t:"Cell Death & Cycle",q:"Name an immediate early gene, delayed early gene, or E2F target",a:{
+ p:["Myc|c-Myc","Cyclin D"],c:["Fos|c-Fos","Cyclin E"],
+ s:["Jun|c-Jun","Cdc25","Bcl-2","Cyclin A","DHFR|dihydrofolate reductase","Thymidylate synthase","Ribonucleotide reductase","DNA polymerase"],
+ r:["Egr-1","Thymidine kinase","DNA primase","RPA|replication protein A","p14ARF|ARF","Glucose transporter|GLUT1","dUTPase|deoxyuridine triphosphatase","Deoxycytidine kinase"],
+ d:["CDC6","MCM proteins|MCM","PCNA","ORC1"],k:"Beta-actin"}},
+
+{t:"Cancer",q:"Name an infectious cause of cancer",a:{
+ p:["HPV|human papillomavirus","Hepatitis B|HBV"],c:["EBV|Epstein-Barr virus","H. pylori|helicobacter pylori"],
+ s:["Hepatitis C|HCV","HHV-8|KSHV|Kaposi sarcoma herpesvirus","HTLV-1","HIV"],
+ r:["Schistosoma haematobium|schistosoma","Liver flukes"],
+ d:["Clonorchis sinensis|clonorchis","Opisthorchis viverrini|opisthorchis"],k:"Merkel cell polyomavirus"}},
+
+{t:"Cancer",q:"Name a hereditary cancer or DNA repair syndrome",a:{
+ p:["Lynch syndrome|HNPCC","Hereditary breast and ovarian cancer|BRCA"],c:["Li-Fraumeni syndrome|li fraumeni","Familial adenomatous polyposis|FAP"],
+ s:["Hereditary retinoblastoma|retinoblastoma","Xeroderma pigmentosum","Ataxia telangiectasia","MEN1","MEN2","Von Hippel-Lindau|VHL","Neurofibromatosis type 1|NF1"],
+ r:["Cowden syndrome|PTEN hamartoma","Peutz-Jeghers","Bloom syndrome","Fanconi anemia","Gorlin syndrome|basal cell nevus syndrome","Tuberous sclerosis","Neurofibromatosis type 2|NF2"],
+ d:["MUTYH-associated polyposis|MAP","Werner syndrome","Juvenile polyposis","Hereditary diffuse gastric cancer","Nijmegen breakage syndrome","Birt-Hogg-Dube"],k:"Muir-Torre syndrome"}},
+
+{t:"Cancer",q:"Name a way an oncogene turns on or a tumor suppressor turns off",a:{
+ p:["Point mutation","Gene amplification|amplification"],c:["Chromosomal translocation|translocation","Loss of heterozygosity|LOH"],
+ s:["Promoter methylation|hypermethylation","Deletion","Insertional mutagenesis","Overexpression","microRNA|miRNA","Dominant negative mutation|dominant negative"],
+ r:["Fusion protein","Mitotic recombination","Nondisjunction","Gene conversion","Viral oncoprotein|E6|E7","Aneuploidy"],
+ d:["Uniparental disomy","Chromothripsis","Haploinsufficiency","Frameshift"],k:"Enhancer hijacking"}},
+
+{t:"Cancer",q:"Name a cancer used as an example in the cancer lectures",a:{
+ p:["Colorectal cancer|colon cancer","Breast cancer"],c:["Melanoma","CML|chronic myeloid leukemia"],
+ s:["Burkitt lymphoma","Retinoblastoma","Glioblastoma","Lung adenocarcinoma|lung cancer","Kaposi sarcoma","Cervical cancer","Pancreatic cancer"],
+ r:["Cholangiocarcinoma","Endometrial cancer","Ovarian cancer","ALL|acute lymphoblastic leukemia","Bladder cancer","Head and neck cancer"],
+ d:["Esophageal adenocarcinoma","Lymphoma","Skin cancer"],k:"Scrotal cancer|chimney sweep cancer"}},
+
+{t:"Cancer",q:"Name a term from tumor nomenclature, grading, or staging",a:{
+ p:["Benign","Malignant"],c:["Metastasis","Dysplasia"],
+ s:["Grade","Stage","TNM","Pleomorphism","Hyperchromasia","Anaplasia","Carcinoma","Sarcoma","Neoplasm","Carcinoma in situ"],
+ r:["Desmoplasia","Micrometastasis","Prognostic marker|prognostic","Predictive marker|predictive","Driver mutation","Passenger mutation"],
+ d:["Hamartoma","Teratoma","Nuclear to cytoplasmic ratio|N:C ratio","Oncogene addiction"],k:"Choristoma"}},
+
+{t:"Cancer",q:"Name a step or route in invasion and metastasis",a:{
+ p:["Hematogenous spread|hematogenous","Lymphatic spread|lymphatic"],c:["EMT|epithelial-mesenchymal transition","Invasion"],
+ s:["Seeding|transcoelomic","Intravasation","Extravasation","Basement membrane breakdown","MMPs|matrix metalloproteinases","Micrometastasis","Colonization","Angiogenesis"],
+ r:["Anoikis resistance","Loss of E-cadherin","Pre-metastatic niche","Circulating tumor cells","Seed and soil","MET|mesenchymal-epithelial transition","Platelet cloaking"],
+ d:["Snail|Twist|ZEB","Tumor dormancy|dormancy","Krukenberg tumor","Virchow node"],k:"Batson venous plexus|batson plexus"}},
+
+{t:"Development",q:"Name an event or structure between fertilization and implantation",a:{
+ p:["Zygote","Blastocyst"],c:["Morula","Acrosome reaction"],
+ s:["Capacitation","Zona pellucida","Compaction","Inner cell mass|embryoblast|ICM","Trophectoderm|trophoblast","Blastocoel","Syncytiotrophoblast","Cytotrophoblast","Cleavage","Pronuclei|pronucleus","Polar body","Hatching"],
+ r:["Cortical reaction","Ampulla","Epiblast","Hypoblast","Bilaminar disc","hCG","Decidualization|decidua","Amniotic cavity"],
+ d:["Zona reaction","Blastomere","E-cadherin","Lacunae","Na/K ATPase|sodium potassium pump","Juno"],k:"Izumo1|Izumo"}},
+
+{t:"Development",q:"Name a derivative of the somites or notochord",a:{
+ p:["Vertebrae|vertebra","Skeletal muscle|muscle"],c:["Dermis","Ribs"],
+ s:["Sclerotome","Myotome","Dermatome","Nucleus pulposus","Intercostal muscles","Epaxial muscles|erector spinae|back muscles","Limb muscles|hypaxial muscles"],
+ r:["Annulus fibrosus","Intervertebral disc","Tendons","Dermis of the back"],
+ d:["Syndetome","Dermomyotome","Endothelial cells"],k:"Brown adipose tissue|brown fat"}},
+
+{t:"Development",q:"Name a congenital anomaly from a failed developmental step",a:{
+ p:["Spina bifida","Anencephaly"],c:["Ectopic pregnancy","Cleft lip|cleft palate"],
+ s:["Situs inversus","Caudal dysgenesis|caudal regression","Omphalocele","Gastroschisis","DiGeorge syndrome","Congenital scoliosis|hemivertebra","Fetal alcohol syndrome","Microcephaly","Phocomelia|limb reduction defect"],
+ r:["Sacrococcygeal teratoma","Meckel diverticulum","Horseshoe kidney","Treacher Collins","Tetralogy of Fallot","Persistent truncus arteriosus","Thyroglossal duct cyst","Branchial cleft cyst","Hirschsprung disease"],
+ d:["Holoprosencephaly","Encephalocele","Ectopia cordis","Patent urachus|urachal fistula","Pierre Robin sequence|pierre robin"],k:"Sirenomelia"}},
+
+{t:"Development",q:"Name a structure of the early cardiovascular or urogenital system",a:{
+ p:["Primitive heart tube|heart tube","Umbilical vein"],c:["Dorsal aortae|dorsal aorta","Vitelline veins|vitelline vein"],
+ s:["Cardinal veins","Umbilical arteries","Pronephros","Mesonephros","Metanephros","Gonadal ridge","Nephrogenic cord","Intermediate mesoderm","Aortic arches|pharyngeal arch arteries","Cardiogenic mesoderm"],
+ r:["Vitelline arteries","Mesonephric duct|wolffian duct","Paramesonephric duct|mullerian duct","Ureteric bud","Metanephric blastema","Blood islands","Sinus venosus","Primordial germ cells"],
+ d:["Truncus arteriosus","Bulbus cordis","Septum transversum","Cloaca","Urogenital sinus","Angioblast"],k:"Hemangioblast"}},
+
+{t:"Biochem & Nutrition",q:"Name an essential vitamin, mineral, or nutrient",a:{
+ p:["Vitamin C","Iron"],c:["Vitamin D","Calcium"],
+ s:["Folate|folic acid|vitamin B9","Vitamin B12|cobalamin|B12","Vitamin A","Vitamin K","Vitamin E","Thiamine|vitamin B1|B1","Zinc","Potassium","Sodium","Magnesium","Iodine","Phosphorus"],
+ r:["Riboflavin|vitamin B2|B2","Niacin|vitamin B3|B3","Pyridoxine|vitamin B6|B6","Pantothenic acid|vitamin B5|B5","Biotin|vitamin B7|B7","Copper","Selenium","Fluoride","Chloride","Sulfur","Linoleic acid|essential fatty acids","Water"],
+ d:["Chromium","Manganese","Choline","Alpha-linolenic acid","Essential amino acids|leucine|lysine|tryptophan"],k:"Molybdenum"}},
+
+{t:"Biochem & Nutrition",q:"Name a food to steer away from on a 2 g sodium diet",a:{
+ p:["Canned soup|tomato soup","Deli meat|processed meat|cold cuts"],c:["Bacon","Ham"],
+ s:["Sauerkraut","Pickles","Soy sauce","Potato chips|chips","Salted crackers|crackers","Frozen dinners|frozen meals","Cheddar cheese|cheese","Hot dogs","Pizza","Bouillon|broth"],
+ r:["Canned vegetables","Vegetable juice|tomato juice","Olives","Instant noodles|ramen","Sausage","Salad dressing","Fast food"],
+ d:["Cottage cheese","Bread","Ketchup","Pretzels"],k:"Miso"},
+ n:{"freshfish":"Fresh fish is a good low-sodium choice.","unsaltednuts":"Unsalted nuts are fine on this diet.","wildrice":"Wild rice is fine on this diet."}},
+
+{t:"Biochem & Nutrition",q:"Name an oral nutrition supplement or enteral formula",a:{
+ p:["Ensure|Ensure Complete"],c:["Glucerna","Boost"],
+ s:["Nepro","Osmolite","Beneprotein","Ensure Clear","Jevity"],
+ r:["Peptamen","Vital","PediaSure","Juven","Pro-Stat"],
+ d:["Impact","Suplena","Kate Farms"],k:"Vivonex"}},
+
+{t:"Biochem & Nutrition",q:"Name a component of a nutrition assessment",a:{
+ p:["BMI|body mass index","Weight"],c:["Height","24-hour diet recall|24 hour recall"],
+ s:["Waist circumference","Weight history|weight loss","Food frequency questionnaire","3-day diet history|food record","Albumin","Prealbumin","Grip strength|hand grip strength","Muscle loss|muscle wasting","Subcutaneous fat loss","Edema"],
+ r:["Mid-upper arm circumference|MUAC","Triceps skinfold","Nitrogen balance","Vitamin D level","Functional status","Oral health|dentition|chewing and swallowing"],
+ d:["Bioelectrical impedance|BIA","DEXA|DXA","Calf circumference"],k:"Indirect calorimetry"}},
+
+{t:"Biochem & Nutrition",q:"Name a common food allergen or intolerance",a:{
+ p:["Peanuts|peanut","Milk|dairy"],c:["Shellfish","Tree nuts"],
+ s:["Eggs|egg","Wheat","Soy","Fish","Sesame","Lactose intolerance|lactose"],
+ r:["Gluten|celiac","Fructose malabsorption|fructose","Mustard","Celery","Lupin","Corn","FODMAPs"],
+ d:["Sulfites","Histamine intolerance","Oral allergy syndrome|pollen food syndrome","Latex-fruit syndrome|kiwi|banana"],k:"Alpha-gal|red meat allergy"}},
+
+{t:"Biochem & Nutrition",q:"Name a cause, finding, or treatment in hyperuricemia and gout",a:{
+ p:["Allopurinol","Podagra|big toe"],c:["Lesch-Nyhan syndrome|lesch nyhan","Tumor lysis syndrome"],
+ s:["Uric acid kidney stones|kidney stones|nephrolithiasis","Xanthine oxidase","Alcohol|ethanol|beer","Purine-rich foods|red meat|organ meats|seafood","Fructose|high fructose corn syrup","Leukemia|lymphoma","Monosodium urate crystals|MSU crystals","Chemotherapy","Colchicine"],
+ r:["Von Gierke disease|G6Pase deficiency|glycogen storage disease type I","PRPP synthetase overactivity","Chronic kidney disease|decreased renal excretion","Thiazide diuretics|thiazides","Febuxostat","Rasburicase","Psoriasis"],
+ d:["Low-dose aspirin","Pyrazinamide","Cyclosporine","Tophi","Negatively birefringent crystals|negative birefringence"],k:"Saturnine gout|lead nephropathy"}},
+
+{t:"Biochem & Nutrition",q:"Name a disorder of nucleotide metabolism",a:{
+ p:["Lesch-Nyhan syndrome|lesch nyhan|HGPRT deficiency","ADA deficiency|adenosine deaminase deficiency"],c:["Gout","Orotic aciduria|oroticaciduria"],
+ s:["PNP deficiency|purine nucleoside phosphorylase deficiency","OTC deficiency|ornithine transcarbamylase deficiency","Tumor lysis syndrome","Hyperuricemia"],
+ r:["Adenylosuccinate lyase deficiency","Xanthinuria|xanthine oxidase deficiency","APRT deficiency","PRPP synthetase superactivity","Myoadenylate deaminase deficiency"],
+ d:["DPD deficiency|dihydropyrimidine dehydrogenase deficiency","Molybdenum cofactor deficiency","Beta-ureidopropionase deficiency"],k:"Kelley-Seegmiller syndrome|partial HGPRT deficiency"}},
+
+{t:"Heme & Hemostasis",q:"Name a protein in iron or B12 absorption, transport, or storage",a:{
+ p:["Ferritin","Transferrin"],c:["Hepcidin","Intrinsic factor"],
+ s:["Ferroportin","DMT1|divalent metal transporter 1","Transferrin receptor","Hephaestin","Ceruloplasmin","Haptocorrin|R binder|transcobalamin I","Transcobalamin II|transcobalamin","Cubilin|cubam","Duodenal cytochrome b|Dcytb|ferrireductase","Erythroferrone|ERFE"],
+ r:["HFE","Hemojuvelin","Heme carrier protein 1|HCP1","Hemosiderin","Soluble transferrin receptor|sTfR","Pepsin","Amnionless","Megalin"],
+ d:["Lipocalin-2","Matriptase-2|TMPRSS6","BMP6","Lactoferrin","Mobilferrin"],k:"NCOA4"}},
+
+{t:"Heme & Hemostasis",q:"Name a sign, symptom, or lab finding of iron deficiency",a:{
+ p:["Fatigue","Microcytic anemia|microcytosis|low MCV"],c:["Pica","Low ferritin"],
+ s:["Koilonychia|spoon nails","Angular cheilitis|cheilitis","Restless legs","Hair loss","Hypochromia|hypochromic","Pagophagia|ice craving","High TIBC|increased TIBC","Low transferrin saturation","Pallor","Glossitis","High RDW|anisocytosis"],
+ r:["Pencil cells","High soluble transferrin receptor","Low hepcidin","Cognitive impairment","Thrombocytosis","Exertional dyspnea","Cold intolerance"],
+ d:["Blue sclerae","Elevated zinc protoporphyrin|free erythrocyte protoporphyrin","Low reticulocyte hemoglobin"],k:"Plummer-Vinson syndrome|esophageal webs"},
+ n:{"highferritin":"High ferritin points to inflammation (functional deficiency) or overload.","macrocytosis":"Macrocytosis suggests B12 or folate deficiency."}},
+
+{t:"Heme & Hemostasis",q:"Name a hematopoietic growth factor or drug that mimics one",a:{
+ p:["EPO|erythropoietin","G-CSF"],c:["TPO|thrombopoietin","GM-CSF"],
+ s:["M-CSF","SCF|stem cell factor|kit ligand","IL-3","IL-7","IL-5","IL-11","IL-2","IL-4","IL-15"],
+ r:["Flt3 ligand","IL-6","Filgrastim","Epoetin alfa|darbepoetin","Romiplostim","Eltrombopag","Avatrombopag"],
+ d:["LIF","IL-1","Pegfilgrastim","Sargramostim"],k:"CXCL12|SDF-1"}},
+
+{t:"Heme & Hemostasis",q:"Name a platelet receptor or surface glycoprotein",a:{
+ p:["GPIIb/IIIa|GP IIb IIIa|alphaIIb beta3|integrin alphaIIb beta3","GPIb-IX-V|GPIb|glycoprotein Ib"],c:["P2Y12|ADP receptor","PAR1|thrombin receptor"],
+ s:["GPVI|glycoprotein VI","Alpha2 beta1|α2β1|collagen receptor","TP receptor|thromboxane receptor","c-Mpl|TPO receptor","PAR4","P-selectin"],
+ r:["P2Y1","IP receptor|prostacyclin receptor","Fc gamma RIIa","TLR4","CD40L|CD154"],
+ d:["GPV","GPIX","PEAR1","Alpha-2A adrenergic receptor","5-HT2A"],k:"CLEC-2"}},
+
+{t:"Heme & Hemostasis",q:"Name an anticoagulant, antiplatelet, fibrinolytic, or hemostatic drug",a:{
+ p:["Heparin","Warfarin"],c:["Aspirin","Clopidogrel"],
+ s:["Apixaban","Rivaroxaban","Enoxaparin|LMWH","Dabigatran","Tirofiban","Vitamin K|phytonadione","Alteplase|tPA","Tranexamic acid|TXA","Protamine","Prasugrel","Ticagrelor"],
+ r:["Eptifibatide","Abciximab","Fondaparinux","Argatroban","Bivalirudin","Aminocaproic acid","Desmopressin|DDAVP","Idarucizumab","Andexanet alfa","Cilostazol","Dipyridamole","Avatrombopag","Emicizumab"],
+ d:["Vorapaxar","Edoxaban","Ticlopidine","Prothrombin complex concentrate|PCC|Kcentra","Streptokinase","Tenecteplase"],k:"Caplacizumab"}},
+
+{t:"Heme & Hemostasis",q:"Name an inherited or acquired cause of excess clotting",a:{
+ p:["Factor V Leiden","Antiphospholipid syndrome|APS"],c:["Protein C deficiency","Antithrombin deficiency"],
+ s:["Protein S deficiency","Prothrombin G20210A|prothrombin mutation","Hyperhomocysteinemia","PNH","Oral contraceptives|estrogen","Pregnancy","Malignancy|cancer","Immobilization","Surgery","HIT|heparin induced thrombocytopenia","TTP"],
+ r:["Nephrotic syndrome","Obesity","Smoking","Elevated factor VIII","Virchow's triad|stasis","Polycythemia vera","Sickle cell disease","Warfarin skin necrosis"],
+ d:["Dysfibrinogenemia","Plasminogen deficiency","Essential thrombocythemia","JAK2 V617F"],k:"Trousseau syndrome"},
+ n:{"hemophilia":"Hemophilia causes bleeding.","vonwillebranddisease":"vWD causes bleeding.","alpha2antiplasmindeficiency":"Alpha-2 antiplasmin deficiency causes bleeding (lecture MCQ)."}},
+
+{t:"Heme & Hemostasis",q:"Name a hemoglobin type, variant, or globin chain",a:{
+ p:["HbA|hemoglobin A|adult hemoglobin","HbF|fetal hemoglobin"],c:["HbS|sickle hemoglobin","HbA2"],
+ s:["Alpha globin","Beta globin","Gamma globin","Delta globin","Zeta globin","Epsilon globin","HbC","Methemoglobin","Carboxyhemoglobin"],
+ r:["Hb Gower 1","Hb Gower 2","Hb Portland","HbE","HbH","Hb Barts","HbA1c|glycated hemoglobin"],
+ d:["Hb Constant Spring","Hb Kansas","Hb Chesapeake","Sulfhemoglobin","HbM"],k:"Hb Lepore"}},
+
+{t:"Heme & Hemostasis",q:"Name a cause of hemolysis or a hemolytic anemia",a:{
+ p:["Sickle cell disease","G6PD deficiency"],c:["Hereditary spherocytosis","Autoimmune hemolytic anemia|AIHA"],
+ s:["Pyruvate kinase deficiency","Hereditary elliptocytosis","Thalassemia","PNH","ABO incompatibility|transfusion reaction","Hemolytic disease of the newborn|erythroblastosis fetalis","Malaria","TTP","HUS","MAHA|microangiopathic hemolytic anemia","Mechanical heart valve"],
+ r:["Fava beans","Sulfa drugs|sulfonamides","Primaquine","Dapsone","Clostridium perfringens","Snake venom","Wilson disease"],
+ d:["March hemoglobinuria","Cold agglutinin disease","Paroxysmal cold hemoglobinuria|Donath-Landsteiner","Spur cell anemia","Southeast Asian ovalocytosis"],k:"Hereditary pyropoikilocytosis"}},
+
+{t:"Micro & Vaccines",q:"Name a bacterium from the oxygen tolerance lecture",a:{
+ p:["Clostridioides difficile|C. diff|clostridium difficile","Pseudomonas aeruginosa|pseudomonas"],c:["H. pylori|helicobacter pylori","Clostridium perfringens|C. perfringens"],
+ s:["Bacteroides","Clostridium tetani|C. tetani","Clostridium botulinum|C. botulinum","Neisseria","Mycobacterium tuberculosis","Borrelia burgdorferi","Treponema pallidum","Fusobacterium","Bordetella pertussis","Legionella pneumophila|legionella"],
+ r:["Corynebacterium diphtheriae","Campylobacter","Actinomyces","Peptostreptococcus","Nocardia","Prevotella","Cutibacterium acnes|propionibacterium"],
+ d:["Veillonella","Bifidobacterium","Mobiluncus"],k:"Porphyromonas gingivalis|porphyromonas"},
+ n:{"ecoli":"E. coli is a facultative anaerobe, not an obligate one.","staphylococcusaureus":"Staph aureus is a facultative anaerobe."}},
+
+{t:"Micro & Vaccines",q:"Name a part of the bacterial cell envelope",a:{
+ p:["Peptidoglycan","LPS|lipopolysaccharide"],c:["Teichoic acid","Lipoteichoic acid|LTA"],
+ s:["Outer membrane","Periplasm|periplasmic space","Lipid A","O antigen","Porins","Cytoplasmic membrane|cell membrane|plasma membrane","Capsule"],
+ r:["Core polysaccharide","Braun lipoprotein|murein lipoprotein","Mycolic acid","S-layer","NAM|N-acetylmuramic acid","NAG|N-acetylglucosamine","Pentaglycine bridge"],
+ d:["Arabinogalactan","Lipoarabinomannan","Penicillin binding proteins|PBP","Transpeptidase"],k:"Diaminopimelic acid|DAP"},
+ n:{"ergosterol":"Ergosterol is in fungal membranes.","chitin":"Chitin is a fungal cell wall component."}},
+
+{t:"Micro & Vaccines",q:"Name a part of a virion or an influenza survival trick",a:{
+ p:["Capsid","Envelope"],c:["Hemagglutinin","Neuraminidase"],
+ s:["Spike protein|spike","Nucleocapsid","Matrix protein","Antigenic drift","Antigenic shift","RNA polymerase|RNA-dependent RNA polymerase","Segmented genome"],
+ r:["Sialic acid","Nucleoprotein|NP","Reassortment","Ribonucleoprotein|RNP","Tegument"],
+ d:["Cap snatching","PB2","NS1"],k:"M2 ion channel|M2"}},
+
+{t:"Micro & Vaccines",q:"Name a live attenuated vaccine",a:{
+ p:["MMR|measles mumps rubella","Varicella|chickenpox"],c:["Oral polio|OPV|Sabin","Rotavirus"],
+ s:["Yellow fever","Intranasal influenza|FluMist|LAIV","Zostavax|live zoster","BCG","Smallpox|vaccinia|ACAM2000","Oral typhoid|Ty21a"],
+ r:["Oral cholera|Vaxchora","Dengue|Dengvaxia","Chikungunya|Ixchiq","Measles"],
+ d:["MMRV|ProQuad","Japanese encephalitis live|SA 14-14-2"],k:"Adenovirus types 4 and 7|adenovirus"},
+ n:{"ipv":"IPV (Salk) is inactivated.","shingrix":"Shingrix is a recombinant subunit vaccine.","hpv":"HPV vaccine is a VLP subunit vaccine.","tdap":"Tdap is a toxoid and subunit vaccine.","hepatitisb":"Hep B vaccine is recombinant subunit."}},
+
+{t:"Micro & Vaccines",q:"Name a vaccine adverse event, contraindication, or special population",a:{
+ p:["Anaphylaxis|allergic reaction","Pregnancy"],c:["Immunocompromised|immunosuppression","Fever"],
+ s:["Guillain-Barre syndrome|GBS","Febrile seizure|seizure","ITP|immune thrombocytopenia","Injection site pain|local reaction|redness and swelling","Myalgia","Syncope|fainting","Elderly|immunosenescence","Newborns|infants"],
+ r:["Intussusception","Myocarditis","Narcolepsy","Egg allergy","VAPP|vaccine associated paralytic polio","SCID"],
+ d:["Arthus reaction","Thrombosis with thrombocytopenia|TTS","Gelatin allergy","Neomycin allergy"],k:"SIRVA|shoulder injury related to vaccine administration"}},
+
+{t:"Immunology",q:"Name a molecule or step in antigen processing and presentation",a:{
+ p:["MHC I|MHC class I","MHC II|MHC class II"],c:["Proteasome","TAP|transporter associated with antigen processing"],
+ s:["Invariant chain|CD74","CLIP","HLA-DM","Beta-2 microglobulin","Calnexin","Calreticulin","Tapasin","ERAP|ERAP1","Cathepsins","Immunoproteasome","Cross presentation"],
+ r:["HLA-A","HLA-B","HLA-C","HLA-DR","HLA-DQ","HLA-DP","ERp57","CD1d","Ubiquitin","Peptide loading complex"],
+ d:["LMP2|LMP7","PA28","HLA-E","HLA-G","MICA"],k:"HLA-DO"}},
+
+{t:"Immunology",q:"Name a stage, molecule, or event in T cell development",a:{
+ p:["Positive selection","Negative selection"],c:["Double positive|DP","Double negative|DN"],
+ s:["Single positive|SP","VDJ recombination|V(D)J recombination","RAG|RAG1|RAG2","TdT|terminal deoxynucleotidyl transferase","AIRE","Pre-TCR","Central tolerance","Natural Treg|nTreg|FoxP3","IL-7"],
+ r:["Beta selection","Pre-T alpha","CCR9","CCR7","Notch1|notch","Corticomedullary junction","Thymic involution"],
+ d:["CCL25","CCL21","Gamma delta T cells","Allelic exclusion","Agonist selection"],k:"Fezf2"},
+ n:{"receptorediting":"Receptor editing is B cell central tolerance.","pax5":"Pax5 commits cells to the B lineage."}},
+
+{t:"Immunology",q:"Name an event or molecule in B cell activation",a:{
+ p:["Class switching|isotype switching|class switch recombination","Plasma cell"],c:["Affinity maturation","Germinal center"],
+ s:["Somatic hypermutation","AID|activation induced cytidine deaminase","CD40","CD40L|CD154","Tfh|T follicular helper","Memory B cell","T-independent activation","T-dependent activation","Ig-alpha|CD79a","Ig-beta|CD79b"],
+ r:["CR2|CD21","Marginal zone B cells","Dark zone","Light zone","Follicular dendritic cell","BCL6","Polysaccharide antigen"],
+ d:["IRF4","XBP1","BAFF","Switch regions","UNG|uracil DNA glycosylase"],k:"Blimp-1"}},
+
+{t:"Immunology",q:"Name a brake that ends or limits an immune response",a:{
+ p:["PD-1","CTLA-4"],c:["Tregs|regulatory T cells","Anergy"],
+ s:["Contraction","T cell exhaustion|exhaustion","IL-10","TGF-beta|TGFβ","Activation induced cell death|AICD","Fas|FasL","PD-L1","LAG-3"],
+ r:["TIM-3","TIGIT","FoxP3","IL-35","BTLA","FcγRIIB|Fc gamma RIIB"],
+ d:["CD39|CD73|adenosine","VISTA","Galectin-9","Lipoxins|resolvins"],k:"IDO|indoleamine 2,3-dioxygenase"}},
+
+{t:"Immunology",q:"Name a structure in the lymphatic circulation",a:{
+ p:["Thoracic duct","Lymph node"],c:["Right lymphatic duct","Lymphatic capillaries|lymph capillaries"],
+ s:["Afferent lymphatic","Efferent lymphatic","Subclavian vein","Cisterna chyli","Lymphangion","Lacteals","HEV|high endothelial venule"],
+ r:["Lymphatic valves|valves","Lymphatic trunks","Jugular trunk","Bronchomediastinal trunk","Intestinal trunk","Anchoring filaments"],
+ d:["Lumbar trunk","Initial lymphatics","Collecting lymphatics"],k:"Venous angle|jugulosubclavian junction"}},
+
+{t:"Health & Society",q:"Name an environmental exposure or climate health threat",a:{
+ p:["Lead","Air pollution"],c:["Secondhand smoke","PFAS|forever chemicals"],
+ s:["Particulate matter|PM2.5","Ground-level ozone|ozone","Pesticides|organophosphates","Extreme heat|heat","Mold","Wildfire smoke","Carbon monoxide","Radon","Asbestos","Mercury"],
+ r:["Nitrogen oxides|NOx|nitrogen dioxide","Sulfur dioxide","Cockroach allergen|rodent allergen","Arsenic","Microplastics","Vector-borne disease|lyme disease|west nile","Flooding","Urban heat island"],
+ d:["Organochlorines|DDT","BPA|bisphenol A","Phthalates","Glyphosate","Benzene","Pollen season lengthening|pollen"],k:"Cancer Alley|fenceline communities"}},
+
+{t:"Health & Society",q:"Name an adverse childhood experience category",a:{
+ p:["Physical abuse","Emotional abuse"],c:["Sexual abuse","Household substance use|parental substance use"],
+ s:["Physical neglect","Emotional neglect","Household mental illness|parental mental illness","Parental separation|divorce","Witnessing domestic violence|domestic violence|intimate partner violence","Incarcerated household member|parental incarceration"],
+ r:["Racism","Community violence","Bullying","Poverty","Foster care","Homelessness"],
+ d:["Discrimination","Death of a parent","Food insecurity","Unsafe neighborhood"],k:"Historical trauma"}},
+
+{t:"Health & Society",q:"Name a study design",a:{
+ p:["Randomized controlled trial|RCT","Cohort study|cohort"],c:["Case-control study|case control","Cross-sectional study|cross sectional"],
+ s:["Case series","Case report","Ecological study","Meta-analysis","Systematic review","Prospective cohort","Historical cohort|retrospective cohort","Quasi-experimental","Prevalence survey","Longitudinal study"],
+ r:["Post-marketing study|phase IV","Crossover trial","Qualitative study|focus group|ethnography","Nested case-control","Cluster randomized trial","Pragmatic trial"],
+ d:["Case-crossover","N-of-1 trial","Factorial design","Natural experiment","Regression discontinuity"],k:"Stepped-wedge|stepped wedge"}},
+
+{t:"Health & Society",q:"Name a bias, or a way to control bias and confounding",a:{
+ p:["Selection bias","Recall bias"],c:["Confounding","Measurement bias"],
+ s:["Allocation bias","Detection bias","Assembly bias","Randomization","Blinding","Matching|pairwise matching","Stratification","Restriction","Standardization","Placebo","Intention-to-treat|intention to treat"],
+ r:["Lead-time bias","Length-time bias","Hawthorne effect","Observer bias","Publication bias","Attrition bias|loss to follow-up","Volunteer bias","Healthy worker effect"],
+ d:["Berkson bias","Neyman bias|incidence-prevalence bias","Ascertainment bias","Propensity score matching","Spectrum bias"],k:"Immortal time bias"}},
+
+{t:"Health & Society",q:"Name a measure of risk or disease frequency",a:{
+ p:["Relative risk|RR|risk ratio","Odds ratio|OR"],c:["Incidence","Prevalence"],
+ s:["NNT|number needed to treat","ARR|absolute risk reduction","RRR|relative risk reduction","Attributable risk","Hazard ratio","Absolute risk","Rate","NNH|number needed to harm"],
+ r:["Kaplan-Meier","Attack rate","Case fatality rate","Population attributable risk","Incidence rate","Vaccine efficacy","Mortality rate","R0|reproduction number"],
+ d:["Person-time","Years of potential life lost|YPLL","DALY","Cumulative incidence"],k:"Standardized mortality ratio|SMR"}},
+
+{t:"Health & Society",q:"Name an FDA law or OTC drug regulation concept",a:{
+ p:["OTC monograph|monograph","Prescription drug|prescription|Rx"],c:["GRASE|generally recognized as safe and effective","Off-label use|off label"],
+ s:["Pure Food and Drug Act","Kefauver-Harris Amendment|kefauver harris","Sherley Amendment","NDA|new drug application","Rx-to-OTC switch","Drug Facts label|labeling","MedWatch|adverse event reporting","Advisory committee"],
+ r:["FD&C Act|food drug and cosmetic act","CARES Act","Durham-Humphrey Amendment","Behind-the-counter","Phase IV"],
+ d:["Thalidomide","Orange Book","Hatch-Waxman"],k:"Elixir Sulfanilamide"}}
+];
+
+/* ---------- normalization + matching ---------- */
+const ROMAN = {i:1,ii:2,iii:3,iv:4,v:5,vi:6,vii:7,viii:8,ix:9,x:10,xi:11,xii:12,xiii:13};
+function norm(s){
+  s = (s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  s = s.replace(/α/g,"alpha").replace(/β/g,"beta").replace(/γ/g,"gamma").replace(/δ/g,"delta").replace(/κ/g,"kappa").replace(/λ/g,"lambda");
+  s = s.replace(/'s\b/g,"").replace(/^the\s+/,"");
+  s = s.replace(/\b(?:factor|f)\s?(xiii|xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i)(a?)\b/g,(m,r,a)=>"factor"+ROMAN[r]+a);
+  s = s.replace(/\bf\s?(\d{1,2})(a?)\b/g,"factor$1$2");
+  return s.replace(/[^a-z0-9]/g,"");
+}
+function lev(a,b){
+  if(Math.abs(a.length-b.length)>2) return 9;
+  const d=Array.from({length:a.length+1},(_,i)=>[i]);
+  for(let j=1;j<=b.length;j++) d[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[a.length][b.length];
+}
+const strip = k => (k.length>4 && k.endsWith("s")) ? k.slice(0,-1) : k;
+
+function buildIndex(item){
+  if(item._idx) return item._idx;
+  const idx = new Map(), entries=[];
+  for(const t of ORDER){
+    const list = t==="k" ? [item.a.k] : (item.a[t]||[]);
+    for(const raw of list){
+      const names = raw.split("|"), e = {tier:t, label:names[0], keys:names.map(norm)};
+      entries.push(e);
+      for(const k of e.keys){ if(!idx.has(k)) idx.set(k,e); const s=strip(k); if(!idx.has(s)) idx.set(s,e); }
+    }
+  }
+  return item._idx = {idx, entries};
+}
+function match(item, input){
+  const k = norm(input); if(!k) return null;
+  const {idx, entries} = buildIndex(item);
+  if(idx.has(k)) return idx.get(k);
+  if(idx.has(strip(k))) return idx.get(strip(k));
+  if(k.length>=6 && !/\d/.test(k)){
+    const lim = k.length>=9 ? 2 : 1; let best=null, bd=9, tie=false;
+    for(const e of entries) for(const key of e.keys){
+      if(key.length<6 || /\d/.test(key)) continue;
+      const d = lev(k,key);
+      if(d<bd){bd=d;best=e;tie=false} else if(d===bd && best!==e) tie=true;
+    }
+    if(best && bd<=lim && !tie) return best;
+  }
+  return null;
+}
+function nopeNote(item,input){
+  if(!item.n) return null; const k=norm(input);
+  return item.n[k] || item.n[strip(k)] || null;
+}
+
+/* ---------- rng + selection ---------- */
+function hashStr(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pick(pool, n, rand){
+  const arr = pool.map((x,i)=>i);
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+  const out=[], seen=new Set();
+  for(const i of arr){ if(out.length>=n) break; if(!seen.has(pool[i].t)){out.push(i);seen.add(pool[i].t)} }
+  for(const i of arr){ if(out.length>=n) break; if(!out.includes(i)) out.push(i) }
+  return out;
+}
+const todayKey = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const dayNumber = () => Math.floor((new Date(todayKey()) - new Date("2026-10-24"))/864e5)+1;
+
+/* ---------- storage ---------- */
+const store = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+
+/* ---------- state ---------- */
+const TOPICS = [...new Set(BANK.map(b=>b.t))];
+let S = null, timerId = null;
+const app = document.getElementById("app");
+const $ = s => app.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function band(m){
+  if(m<1000) return "Shallows";
+  if(m<2000) return "Reef";
+  if(m<3000) return "Thermocline";
+  if(m<4500) return "Twilight Zone";
+  if(m<6000) return "Abyss";
+  return "Hadal Trench";
+}
+function setDepth(pts){
+  const m = pts*M_PER_PT, max = ROUNDS*100*M_PER_PT;
+  document.getElementById("gaugeM").textContent = m.toLocaleString()+" m";
+  document.getElementById("gaugeLbl").textContent = m ? band(m) : "at the surface";
+  document.getElementById("stripFill").style.width = Math.min(100, m/max*100)+"%";
+  document.documentElement.style.setProperty("--depth", Math.min(1, m/(max*0.75)).toFixed(3));
+}
+
+/* ---------- screens ---------- */
+let chosenTopics = new Set();
+function home(){
+  clearInterval(timerId); setDepth(0);
+  const done = store.get("fos2k-daily-"+todayKey());
+  const tierCards = ORDER.slice().reverse().map(t=>`<div class="tier"><b class="c-${t}">${TIERS[t].name}</b><span>${TIERS[t].pts} pts · ${(TIERS[t].pts*M_PER_PT).toLocaleString()} m</span></div>`).join("");
+  app.innerHTML = `
+  <section class="panel stack">
+    <h2>Seven prompts. Twenty-five seconds each.</h2>
+    <p>Every prompt has dozens of right answers. The obvious ones barely count; the ones only a careful reader of the lecture would reach for send you deeper. A wrong guess costs nothing but time, so keep typing until the clock runs out.</p>
+    <div class="tiers">${tierCards}</div>
+    <p class="muted">Too Clever is the "obscure" pick everyone else also thinks of. Each prompt hides exactly one One in a Krillion answer.</p>
+  </section>
+  <section class="panel stack">
+    <div class="roundhead"><h2>Daily Dive</h2><span class="pill">Dive #${dayNumber()} · ${todayKey()}</span></div>
+    ${done
+      ? `<p>Today's dive: <b>${(done.pts*M_PER_PT).toLocaleString()} m</b>, ${band(done.pts*M_PER_PT)}. A new set surfaces at midnight.</p>
+         <div class="row"><button class="ghost" id="viewDaily">See today's results</button></div>`
+      : `<p class="muted">Same seven prompts for everyone today, one per block where possible.</p>
+         <div class="row"><button class="primary" id="startDaily">Start today's dive</button></div>`}
+  </section>
+  <section class="panel stack">
+    <div class="roundhead"><h2>Unlimited</h2><span class="pill">${BANK.length} prompts in the bank</span></div>
+    <p class="muted">Endless practice. Leave every block off to draw from all of them, or pick the blocks you want to drill.</p>
+    <div class="chips" id="chips">${TOPICS.map(t=>`<button class="chip ghost" aria-pressed="${chosenTopics.has(t)}" data-t="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+    <div class="row"><button class="ghost" id="startFree">Start a practice dive</button></div>
+  </section>`;
+  $("#chips").addEventListener("click",e=>{
+    const b=e.target.closest(".chip"); if(!b) return; const t=b.dataset.t;
+    chosenTopics.has(t)?chosenTopics.delete(t):chosenTopics.add(t);
+    b.setAttribute("aria-pressed",chosenTopics.has(t));
+  });
+  const sd=$("#startDaily"); if(sd) sd.onclick=()=>start("daily");
+  const vd=$("#viewDaily"); if(vd) vd.onclick=()=>{S=done.state; summary()};
+  $("#startFree").onclick=()=>start("free");
+}
+
+function start(mode){
+  let idxs;
+  if(mode==="daily"){ idxs = pick(BANK, ROUNDS, rng(hashStr("fos2-"+todayKey()))); }
+  else{
+    const pool = BANK.map((b,i)=>({b,i})).filter(x=>!chosenTopics.size || chosenTopics.has(x.b.t));
+    const sub = pick(pool.map(x=>x.b), Math.min(ROUNDS,pool.length), Math.random);
+    idxs = sub.map(j=>pool[j].i);
+  }
+  S = {mode, idxs, round:0, pts:0, results:[]};
+  round();
+}
+
+function round(){
+  const item = BANK[S.idxs[S.round]];
+  let left = SECONDS, ended = false;
+  const guesses = [];
+  app.innerHTML = `
+  <section class="panel stack">
+    <div class="roundhead">
+      <span class="pill">${S.mode==="daily"?"Daily":"Unlimited"} · Prompt ${S.round+1} of ${S.idxs.length}</span>
+      <span class="pill">${esc(item.t)}</span>
+    </div>
+    <div class="prompt">${esc(item.q)}</div>
+    <div class="row" style="justify-content:space-between"><span class="secs" id="secs">${left}s</span><button class="ghost" id="skip" style="padding:6px 12px;font-size:14px">Give up</button></div>
+    <div class="timer" id="timer"><i id="bar"></i></div>
+    <form class="answer" id="form" autocomplete="off">
+      <label class="sr" for="ans">Your answer</label>
+      <input id="ans" type="text" placeholder="Type an answer, press Enter" autocapitalize="off" spellcheck="false">
+      <button class="primary" type="submit">Dive</button>
+    </form>
+    <div class="feedback" id="fb" aria-live="assertive"></div>
+  </section>`;
+  const inp=$("#ans"), fb=$("#fb"), bar=$("#bar"), secs=$("#secs"), tm=$("#timer");
+  inp.focus();
+  const t0 = performance.now();
+  timerId = setInterval(()=>{
+    const el = (performance.now()-t0)/1000; left = Math.max(0, SECONDS-el);
+    bar.style.width = (left/SECONDS*100)+"%"; secs.textContent = Math.ceil(left)+"s";
+    tm.classList.toggle("low", left<=6);
+    if(left<=0) finish(null);
+  },100);
+  function finish(entry){
+    if(ended) return; ended=true; clearInterval(timerId);
+    const pts = entry ? TIERS[entry.tier].pts : 0;
+    S.pts += pts;
+    S.results.push({i:S.idxs[S.round], label: entry?entry.label:null, tier: entry?entry.tier:null, pts, guesses});
+    setDepth(S.pts);
+    reveal();
+  }
+  $("#form").onsubmit = e=>{
+    e.preventDefault(); if(ended) return;
+    const v = inp.value.trim(); if(!v) return;
+    const m = match(item, v);
+    if(m){ finish(m); return; }
+    guesses.push(v);
+    const note = nopeNote(item, v);
+    fb.className="feedback bad"; fb.textContent = note ? "Not accepted. "+note : `"${v}" isn't in the answer bank. Try another.`;
+    inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+    inp.select();
+  };
+  $("#skip").onclick=()=>finish(null);
+}
+
+function revealList(item, hit){
+  const {entries} = buildIndex(item);
+  return ORDER.map(t=>{
+    const es = entries.filter(e=>e.tier===t); if(!es.length) return "";
+    return `<div class="grp"><h4 class="c-${t}">${TIERS[t].name}<small>${TIERS[t].pts}</small></h4>
+      <div class="names">${es.map(e=> e.label===hit ? `<mark>${esc(e.label)}</mark>` : esc(e.label)).join(" · ")}</div></div>`;
+  }).join("");
+}
+
+function reveal(){
+  const r = S.results[S.results.length-1], item = BANK[r.i];
+  const last = S.round === S.idxs.length-1;
+  app.innerHTML = `
+  <section class="panel stack">
+    <div class="roundhead">
+      <span class="pill">Prompt ${S.round+1} of ${S.idxs.length}</span>
+      <span class="pill">${esc(item.t)}</span>
+    </div>
+    <div class="prompt" style="font-size:24px">${esc(item.q)}</div>
+    <div class="result" aria-live="polite">
+      ${r.tier
+        ? `<span class="badge c-${r.tier} ${r.tier==="k"?"k":""}">${TIERS[r.tier].name}</span>
+           <span class="pts"><b>${esc(r.label)}</b> · +${r.pts} pts · +${(r.pts*M_PER_PT).toLocaleString()} m</span>`
+        : `<span class="badge" style="color:var(--bad)">No answer</span><span class="pts">+0 m. Here is what was down there.</span>`}
+    </div>
+    <div class="row"><button class="primary" id="next">${last?"Surface and see results":"Next prompt"}</button></div>
+    <div class="reveal">${revealList(item, r.label)}</div>
+  </section>`;
+  const nb=$("#next"); nb.focus();
+  nb.onclick=()=>{ if(last){ endDive() } else { S.round++; round() } };
+}
+
+function endDive(){
+  if(S.mode==="daily") store.set("fos2k-daily-"+todayKey(), {pts:S.pts, state:S});
+  summary();
+}
+
+function shareText(){
+  const m=S.pts*M_PER_PT;
+  const line = S.results.map(r=> r.tier?TIERS[r.tier].emoji:"⚫").join("");
+  return `FOS 2 Krillion ${S.mode==="daily"?"#"+dayNumber():"(practice)"}\n${line}\n${m.toLocaleString()} m · ${band(m)}`;
+}
+
+function summary(){
+  clearInterval(timerId); setDepth(S.pts);
+  const m = S.pts*M_PER_PT;
+  const rows = S.results.map((r,i)=>{
+    const it = BANK[r.i];
+    return `<tr><td class="n">${i+1}</td><td>${esc(it.q)}<br><span class="muted">${r.tier?`<span class="c-${r.tier}">${TIERS[r.tier].name}</span> · ${esc(r.label)}`:"No answer"}</span></td><td class="n">${r.pts}</td></tr>`;
+  }).join("");
+  app.innerHTML = `
+  <section class="panel stack">
+    <span class="pill" style="align-self:flex-start">${S.mode==="daily"?"Daily Dive #"+dayNumber():"Practice dive"} complete</span>
+    <div class="big">${m.toLocaleString()} m</div>
+    <div class="band">${band(m)}</div>
+    <p class="muted">${S.pts} of ${S.idxs.length*100} points. Seven Rare answers would reach 4,200 m.</p>
+    <div style="overflow-x:auto"><table class="sum"><tbody>${rows}</tbody></table></div>
+  </section>
+  <section class="panel stack">
+    <h2>Share</h2>
+    <div class="sharebox" id="share">${esc(shareText())}</div>
+    <div class="row"><button class="ghost" id="copy">Copy result</button><span class="muted" id="copied" aria-live="polite"></span></div>
+  </section>
+  <section class="panel stack">
+    <h2>Review the bank</h2>
+    <p class="muted">Every accepted answer for this dive, by tier. Your pick is highlighted.</p>
+    ${S.results.map(r=>`<div class="stack"><b>${esc(BANK[r.i].q)}</b><div class="reveal">${revealList(BANK[r.i], r.label)}</div></div>`).join("")}
+  </section>
+  <div class="row"><button class="primary" id="again">Practice dive</button><button class="ghost" id="home">Back to start</button></div>`;
+  $("#copy").onclick=()=>{
+    const t=shareText(), out=$("#copied");
+    const fallback=()=>{const r=document.createRange();r.selectNodeContents($("#share"));const s=getSelection();s.removeAllRanges();s.addRange(r);out.textContent="Selected. Press copy on your device."};
+    try{ navigator.clipboard.writeText(t).then(()=>out.textContent="Copied.",fallback) }catch(e){ fallback() }
+  };
+  $("#again").onclick=()=>start("free");
+  $("#home").onclick=home;
+}
+
+home();
+</script>
